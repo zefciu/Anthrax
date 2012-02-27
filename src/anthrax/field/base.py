@@ -5,18 +5,13 @@ from gettext import gettext as _
 from anthrax.exc import ValidationError
 
 class Field(object, metaclass=abc.ABCMeta):
-    __slots__ = [
-        'regexp', 'regexp_string', 'regexp_message', 'min_len',
-        'min_len_message', 'max_len', 'max_len__message', 'widget'
-    ] 
     """Abstract Field class. Fields encapsulate validation and
 encoding/decoding logic. Non-abstract children of Field class should
 override at least to_python() and from_python() methods. Constructor arguments:
         
 regexp:
-    The regular expression that raw values should match. You can pass either a
-    string (will be compiled during construction or a compiled SRE_Pattern).
-    However for a default regexp_message to be meaningful a string is required.
+    The regular expression that raw values should match. Don't pass a compiled
+    regexp here. The string will be compiled at creation.
 
 regexp_message:
     An error message to display when the value doesn't match the regexp.
@@ -40,8 +35,6 @@ widget:
     Widget representing this field.
     """
 
-    regexp_string = None
-    regexp = None
     regexp_message = _('Value should match regexp {regexp}')
     min_len = 0
     min_len_message = _("Value can't be shorter than {min_len}")
@@ -50,12 +43,9 @@ widget:
 
     def __init__(self, name, regexp=None, **kwargs):
         self.name = name
-        if isinstance(regexp, str):
-            self.regexp_string = regexp
-            self.regexp = re.compile(regexp)
-        else:
-            self.regexp_string = ''
-            self.regexp = regexp
+        self.regexp = regexp
+        if regexp is not None:
+            self.regexp_compiled = re.compile(regexp)
         for k, v in kwargs.items():
             setattr(self, k, v)
         
@@ -90,7 +80,7 @@ widget:
         parameters (like regexp or min_len)."""
         len_ = len(value)
         if self.regexp is not None:
-            if not self.regexp.match(value):
+            if not self.regexp_compiled.match(value):
                 raise ValidationError(
                     message = self.regexp_message.format(regexp=self.regexp)
                 )
@@ -115,7 +105,7 @@ widget:
         self._declarative_raw_validation(rvalue)
         self.validate_raw(rvalue)
         pvalue = self.to_python(rvalue)
-        self._declarative_python_validation(rvalue)
+        self._declarative_python_validation(pvalue)
         self.validate_python(pvalue)
         return pvalue
 
@@ -130,4 +120,4 @@ widget:
                     err.message
                 )
             )
-        self.value = pvalue
+        return self.from_python(pvalue)
