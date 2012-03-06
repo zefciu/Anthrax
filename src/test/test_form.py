@@ -2,22 +2,22 @@ import unittest
 
 from anthrax.form import Form
 from anthrax.field import TextField, IntegerField
+from util import dummy_frontend
 
 class Test(unittest.TestCase):
     """Test basic form features"""
 
     def setUp(self):
-        self.form = Form(fields = [
-            TextField(
-                name='name',
+        class TestForm(Form):
+            __frontend__ = dummy_frontend
+            name = TextField(
                 regexp=r'^[A-Z][a-z]+$',
                 regexp_message='Write your name with a capital',
-                max_len=20,
-                max_len_message='You must be kidding!',
-            ),
-            TextField('nickname', max_len=30),
-            IntegerField('age', min=7, max=99),
-        ])
+                max_len=20, max_len_message='You must be kidding!',
+            )
+            nickname = TextField(max_len=30)
+            age = IntegerField(min=7, max=99)
+        self.form = TestForm()
 
     def test_valid(self):
         """Testing a completely valid flow"""

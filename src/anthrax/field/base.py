@@ -4,11 +4,23 @@ from gettext import gettext as _
 
 from anthrax.exc import ValidationError
 
+class BoundField(object):
+    def __init__(self, form):
+        self.field = form
+
+
+    def __getattr__(self, key):
+        return getattr(self.field, key)
+
+
 class Field(object, metaclass=abc.ABCMeta):
     """Abstract Field class. Fields encapsulate validation and
 encoding/decoding logic. Non-abstract children of Field class should
 override at least to_python() and from_python() methods. Constructor arguments:
         
+label:
+    The label to display before the field
+
 regexp:
     The regular expression that raw values should match. Don't pass a compiled
     regexp here. The string will be compiled at creation.
@@ -31,24 +43,48 @@ max_len_message:
     An error message to display when the value is longer than max_len. 
     Can contain a {max_len} placeholder.
 
-widget:
-    Widget representing this field.
+widgets:
+    Widgets that can represent this field. Preferred ones should be put in
+    front.
     """
 
+    regexp = None
     regexp_message = _('Value should match regexp {regexp}')
+    _regexp_compiled = None
     min_len = 0
     min_len_message = _("Value can't be shorter than {min_len}")
     max_len = None
     max_len_message = _("Value can't be longer than {max_len}")
+    label = _('')
 
-    def __init__(self, name, regexp=None, **kwargs):
-        self.name = name
-        self.regexp = regexp
-        if regexp is not None:
-            self.regexp_compiled = re.compile(regexp)
+    def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def __get__(self, inst, cls):
+        return BoundField(inst)
+
+    @property
+    def value(self):
+        if not hasattr(self, 'form'):
+            raise AttributeError('Unbound field')
+        return self.form.get(self.name, None)
+
+    @property
+    def raw_value(self):
+        v = self.value
+        if self.value is None:
+            return ''
+        else:
+            return self._python2raw(self.value)
+
+    @property
+    def regexp_compiled(self):
+        if self._regexp_compiled is None and self.regexp is not None:
+            self._regexp_compiled = re.compile(self.regexp)
+        return self._regexp_compiled
         
+    widgets = abc.abstractproperty()
     
     @abc.abstractmethod
     def to_python(self, value):
@@ -121,3 +157,6 @@ widget:
                 )
             )
         return self.from_python(pvalue)
+
+    def render(self):
+        return self.widget.render()

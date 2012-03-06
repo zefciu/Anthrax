@@ -18,9 +18,10 @@ setup(
     long_description = long_description,
 
     install_requires = [],
-    tests_require = ['nose>=1.0', 'nose-cov>=1.0'],
+    tests_require = ['nose>=1.0', 'nose-cov>=1.0', 'lxml'],
     test_suite = 'nose.collector',
     package_dir = {'': 'src'},
+    namespace_packages = ['anthrax'],
     packages = [
         'anthrax', 'anthrax.field', 'anthrax.widget',
     ],
