@@ -1,6 +1,7 @@
 import unittest
 
 from anthrax.form import Form
+from anthrax.exc import FormValidationError
 from anthrax.field import TextField, IntegerField
 from util import dummy_frontend
 
@@ -8,8 +9,15 @@ class Test(unittest.TestCase):
     """Test basic form features"""
 
     def setUp(self):
+        def purity_test(form):
+            if form['name'] == 'Galahad' and form['nickname'] != 'the Pure':
+                raise FormValidationError(
+                    ['name', 'nickname'], 
+                    'Sir Galahad must be pure',
+                )
         class TestForm(Form):
             __frontend__ = dummy_frontend
+            __validators__ = [purity_test]
             name = TextField(
                 regexp=r'^[A-Z][a-z]+$',
                 regexp_message='Write your name with a capital',
@@ -67,3 +75,20 @@ class Test(unittest.TestCase):
             "Value can't be higher than 99."
         )
         self.assertListEqual(self.form.errors['age'].suggestions, [99])
+
+    def test_impure(self):
+        """Testing the formwise validator"""
+        result = self.form.handle_raw_input({
+            'name': 'Galahad', 'nickname': 'the Promiscuous', 'age': '25'
+        })
+        self.assertFalse(result)
+        self.assertFalse(self.form.valid)
+        self.assertEqual(
+            self.form.errors['name'].message,
+            'Sir Galahad must be pure'
+        )
+        self.assertEqual(
+            self.form.errors['nickname'].message,
+            'Sir Galahad must be pure'
+        )
+        

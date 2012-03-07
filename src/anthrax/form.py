@@ -2,7 +2,7 @@ import abc
 import weakref
 
 from collections import Mapping, OrderedDict
-from anthrax.exc import ValidationError
+from anthrax.exc import ValidationError, FormValidationError
 from anthrax.field.base import Field
 from anthrax.util import load_entry_point
 from anthrax.frontend import Frontend
@@ -43,11 +43,13 @@ class RawDict(Mapping):
 class Form(Mapping, metaclass=FormMeta):
 
     __frontend__ = abc.abstractproperty()
+    __validators__ = []
     __stop_on_first__ = False
 
     def __init__(self):
         self._frontend_name_cache = ''
         self._load_frontend()
+        self._load_validators()
         for fname, field in self.fields.items():
             w = self._frontend.negotiate_widget(field)
             field.widget = w
@@ -84,6 +86,9 @@ class Form(Mapping, metaclass=FormMeta):
         )
         self._frontend_name_cache = self.__frontend__
 
+    def _load_validators(self):
+        self._validators = self.__validators__[:]
+
     def reset(self):
         """Resets the form. Clears all fields and errors"""
         self.values = {}
@@ -99,6 +104,7 @@ class Form(Mapping, metaclass=FormMeta):
         False on errors"""
         valid = True
         self.raw_values = dict_
+        self._load_validators()
         for k, v in dict_.items():
             field = self.fields[k]    
             try:
@@ -108,6 +114,14 @@ class Form(Mapping, metaclass=FormMeta):
                 if self.__stop_on_first__:
                     return False
                 valid = False
+        if valid:
+            for validator in self._validators:
+                try:
+                    validator(self)
+                except FormValidationError as err:
+                    for field in err.fields:
+                        self.errors[field] = err
+                    valid = False
         return valid
 
     def render(self):
