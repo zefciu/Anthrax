@@ -1,6 +1,6 @@
 import unittest
 
-from anthrax.form import Form
+from anthrax.container.form import Form
 from anthrax.exc import FormValidationError
 from anthrax.field import TextField, IntegerField
 from util import dummy_frontend
