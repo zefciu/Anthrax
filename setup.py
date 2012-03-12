@@ -17,13 +17,13 @@ setup(
     keywords = 'form web ',
     long_description = long_description,
 
-    install_requires = [],
+    install_requires = ['decorator>=3.3.2'],
     tests_require = ['nose>=1.0', 'nose-cov>=1.0', 'lxml'],
     test_suite = 'nose.collector',
     package_dir = {'': 'src'},
     namespace_packages = ['anthrax'],
     packages = [
-        'anthrax', 'anthrax.field', 'anthrax.widget',
+        'anthrax', 'anthrax.container', 'anthrax.field', 'anthrax.widget',
     ],
     use_2to3 = True,
     classifiers = [

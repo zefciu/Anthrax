@@ -29,66 +29,60 @@ class Test(unittest.TestCase):
 
     def test_valid(self):
         """Testing a completely valid flow"""
-        result = self.form.handle_raw_input({
+        self.form.__raw__ = {
             'name': 'Galahad', 'nickname': 'the Pure', 'age': '25',
-        })
-        self.assertTrue(result)
-        self.assertTrue(self.form.valid)
+        }
+        self.assertTrue(self.form.__valid__)
         self.assertDictEqual(dict(self.form), {
             'name': 'Galahad', 'nickname': 'the Pure', 'age': 25,
         })
 
     def test_invalid_regexp(self):
         """Testing an error with input unmatching regexp"""
-        result = self.form.handle_raw_input({
+        self.form.__raw__ = {
             'name': 'galahad', 'nickname': 'the Pure', 'age': '25'
-        })
-        self.assertFalse(result)
-        self.assertFalse(self.form.valid)
+        }
+        self.assertFalse(self.form.__valid__)
         self.assertEqual(
-            self.form.errors['name'].message,
+            self.form.__errors__['name'].message,
             'Write your name with a capital'
         )
 
     def test_too_long(self):
         """Testing an error with input too long"""
-        result = self.form.handle_raw_input({
+        self.form.__raw__ = {
             'name': 'Galahahahahahahahahaahahaddd', 'nickname': 'the Pure',
             'age': '25'
-        })
-        self.assertFalse(result)
-        self.assertFalse(self.form.valid)
+        }
+        self.assertFalse(self.form.__valid__)
         self.assertEqual(
-            self.form.errors['name'].message,
+            self.form.__errors__['name'].message,
             'You must be kidding!'
         )
 
     def test_too_much(self):
         """Testing an error with input too high"""
-        result = self.form.handle_raw_input({
+        self.form.__raw__ = {
             'name': 'Galahad', 'nickname': 'the Pure', 'age': '120'
-        })
-        self.assertFalse(result)
-        self.assertFalse(self.form.valid)
+        }
+        self.assertFalse(self.form.__valid__)
         self.assertEqual(
-            self.form.errors['age'].message,
+            self.form.__errors__['age'].message,
             "Value can't be higher than 99."
         )
-        self.assertListEqual(self.form.errors['age'].suggestions, [99])
+        self.assertListEqual(self.form.__errors__['age'].suggestions, [99])
 
     def test_impure(self):
         """Testing the formwise validator"""
-        result = self.form.handle_raw_input({
+        self.form.__raw__ = {
             'name': 'Galahad', 'nickname': 'the Promiscuous', 'age': '25'
-        })
-        self.assertFalse(result)
-        self.assertFalse(self.form.valid)
+        }
+        self.assertFalse(self.form.__valid__)
         self.assertEqual(
-            self.form.errors['name'].message,
+            self.form.__errors__['name'].message,
             'Sir Galahad must be pure'
         )
         self.assertEqual(
-            self.form.errors['nickname'].message,
+            self.form.__errors__['nickname'].message,
             'Sir Galahad must be pure'
         )
-        

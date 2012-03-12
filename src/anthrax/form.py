@@ -6,123 +6,49 @@ from anthrax.exc import ValidationError, FormValidationError
 from anthrax.field.base import Field
 from anthrax.util import load_entry_point
 from anthrax.frontend import Frontend
+from anthrax.container.base import Container
 
-class FormMeta(abc.ABCMeta):
+class Form(Container):
 
-    @classmethod
-    def __prepare__(mcls, clsname, bases):
-        return OrderedDict()
-
-    def __init__(cls, clsname, bases, dict_):
-        cls.fields = OrderedDict()
-        for fname, field in dict_.items():
-            if not isinstance(field, Field):
-                continue
-            field.name = fname
-            cls.fields[fname] = field
-        super(FormMeta, cls).__init__(clsname, bases, dict_)
-
-class RawDict(Mapping):
-    def __init__(self, form):
-        self.form = form
-
-    def __getitem__(self, key):
-        field = self.form.fields[key]
-        value = self.form.get(key, None)
-        if value:
-            return field._python2raw(self.form[key])
-        else:
-            return ''
-
-    def __iter__(self):
-        return iter(self.form)
-
-    def __len__(self):
-        return len(form)
-
-class Form(Mapping, metaclass=FormMeta):
-
-    __frontend__ = abc.abstractproperty()
-    __validators__ = []
     __stop_on_first__ = False
 
     def __init__(self):
-        self._frontend_name_cache = ''
+        self._frontend_name_cache = None
         self._load_frontend()
-        self._load_validators()
-        for fname, field in self.fields.items():
-            w = self._frontend.negotiate_widget(field)
-            field.widget = w
-            field.form = weakref.proxy(self)
-            w.field = field # weakref.proxy(field)
-        self.raw = RawDict(self)
-        self.reset()
-
-    def __iter__(self):
-        return iter(self.values)
-
-    def __len__(self):
-        return len(self.values)
-
-    def __getitem__(self, key):
-        return self.values[key]
-
-    def __setitem__(self, key, value):
-        field = self.fields[key]
-        self.raw_values[key] = field._python2raw(value) # First as it can fail
-        self.values[key] = value
-
-    def __delitem__(self, key):
-        del self.values[key]
-
-    def _load_frontend(self):
-        if isinstance(self.__frontend__, Frontend):
-            self._frontend = self.__frontend__
-            return
-        if self._frontend_name_cache == self.__frontend__:
-            return
-        self._frontend = load_entry_point(
-            'anthrax.frontend', self.__frontend__, 'frontend'
-        )
-        self._frontend_name_cache = self.__frontend__
+        super(Form, self).__init__()
 
     def _load_validators(self):
         self._validators = self.__validators__[:]
 
-    def reset(self):
-        """Resets the form. Clears all fields and errors"""
-        self.values = {}
-        self.errors = {}
-
-    @property
-    def valid(self):
-        """Returns true if form is valid"""
-        return not bool(self.errors)
-
-    def handle_raw_input(self, dict_):
+    @Container.__raw__.setter
+    def __raw__(self, dict_):
         """Accepts a dictionary of raw values. Returns True on success and
         False on errors"""
         valid = True
         self.raw_values = dict_
-        self._load_validators()
         for k, v in dict_.items():
-            field = self.fields[k]    
+            field = self.__fields__[k]    
+            field_parent = field.__parent__
+            key = k.rsplit('-', 1)[-1]
             try:
-                self.values[k] = field._raw2python(v, self)
+                field_parent._values[k] = field._raw2python(v, self)
             except ValidationError as err:
-                self.errors[k] = err
+                field_parent.__errors__[k] = err
                 if self.__stop_on_first__:
                     return False
                 valid = False
         if valid:
-            for validator in self._validators:
-                try:
-                    validator(self)
-                except FormValidationError as err:
-                    for field in err.fields:
-                        self.errors[field] = err
-                    valid = False
+            self._run_validators()
         return valid
+
+    def _load_frontend(self):
+        if isinstance(self.__frontend__, Frontend):
+            self._frontend = self.__frontend__
+        elif self._frontend_name_cache != self.__frontend__:
+            self._frontend_name_cache = self.__frontend__
+            self._frontend = load_entry_point(
+                'anthrax.frontend', self.__frontend__, 'frontend'
+            )
 
     def render(self):
         self._load_frontend()
