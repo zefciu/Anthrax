@@ -17,9 +17,6 @@ class Form(Container):
         self._load_frontend()
         super(Form, self).__init__()
 
-    def _load_validators(self):
-        self._validators = self.__validators__[:]
-
     @Container.__raw__.setter
     def __raw__(self, dict_):
         """Accepts a dictionary of raw values. Returns True on success and
@@ -31,9 +28,9 @@ class Form(Container):
             field_parent = field.__parent__
             key = k.rsplit('-', 1)[-1]
             try:
-                field_parent._values[k] = field._raw2python(v, self)
+                field_parent._values[key] = field._raw2python(v, self)
             except ValidationError as err:
-                field_parent.__errors__[k] = err
+                field_parent.__errors__[key] = err
                 if self.__stop_on_first__:
                     return False
                 valid = False

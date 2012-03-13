@@ -8,16 +8,22 @@ from anthrax.field.base import Field
 from anthrax.frontend import Frontend
 from anthrax.exc import FormValidationError
 
-@decorator
-def traverse(fun, self, key, *args, **kwargs):
-    if isinstance(key, str) and '-' in key:
-        key = key.split('-')
-    if isinstance(key, Sequence) and not isinstance(key, str):
-        if len(key) == 1:
-            key = key[0]
-        else:
-            return getattr(self._fields[key[-1]], fun.__name__)
-    return fun(self, key, *args, **kwargs)
+def traverse(attrib=None):
+    def wrap(fun):
+        def do_traverse(fun, self, key, *args, **kwargs):
+            if '-' in key:
+                first, rest = key.split('-', 1)
+                subcontainer = self._fields[first]
+                if attrib is not None:
+                    subcontainer = getattr(subcontainer, attrib)
+                return getattr(
+                    subcontainer, fun.__name__
+                )(rest, *args, **kwargs)
+            else:
+                return fun(self, key, *args, **kwargs)
+        return decorator(do_traverse, fun)
+    return wrap
+
 
 class ContainerMeta(abc.ABCMeta):
     @classmethod
@@ -56,7 +62,7 @@ class RawDict(Mapping):
         self.owner = owner
         self._fields = owner._fields
 
-    @traverse
+    @traverse('__raw__')
     def __getitem__(self, key):
         field = self.owner.fields[key]
         value = self.owner.get(key, None)
@@ -81,7 +87,7 @@ class FieldsDict(Mapping):
     def _fields(self):
         return self.owner._fields
 
-    @traverse
+    @traverse('__fields__')
     def __getitem__(self, key):
         return self._fields[key]
 
@@ -97,14 +103,20 @@ class Container(Mapping, metaclass=ContainerMeta):
     def __init__(self):
         self._load_validators()
         fields = OrderedDict()
+        subcontainers = []
         for fname, field in type(self).__fields__.items():
             field.__parent__ = weakref.proxy(self)
             if isinstance(field, ContainerMeta):
                 field = field()
+                subcontainers.append(field)
             fields[fname] = field
         self._fields = fields
         self.__fields__ = FieldsDict(self)
+        self.__subcontainers__ = subcontainers
         self.__reset__()
+
+    def _load_validators(self):
+        self._validators = self.__validators__[:]
 
     def _negotiate_widgets(self):
         for field in self._fields:
@@ -140,15 +152,15 @@ class Container(Mapping, metaclass=ContainerMeta):
     def __len__(self):
         return len(self._fields)
 
-    @traverse
+    @traverse()
     def __getitem__(self, key):
         return self._values[key]
 
-    @traverse
+    @traverse()
     def __delitem__(self, key):
         del self._values[key]
 
-    @traverse
+    @traverse()
     def __setitem__(self, key, value):
         field = self.__fields__[key]
         self._raw_values[key] = field._python2raw(value) # First as it can fail
