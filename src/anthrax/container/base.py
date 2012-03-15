@@ -136,7 +136,7 @@ class Container(Mapping, metaclass=ContainerMeta):
         self._validators = self.__validators__[:]
 
     def _negotiate_widgets(self):
-        for field in self._fields:
+        for field in self._fields.values():
             if isinstance(field, Field):
                 w = self._frontend.negotiate_widget(field)
                 field.widget = w

@@ -14,7 +14,6 @@ class Form(Container):
 
     def __init__(self):
         self._frontend_name_cache = None
-        self._load_frontend()
         super(Form, self).__init__()
 
     @Container.__raw__.setter
@@ -46,6 +45,9 @@ class Form(Container):
             self._frontend = load_entry_point(
                 'anthrax.frontend', self.__frontend__, 'frontend'
             )
+        else:
+            return
+        self._negotiate_widgets()
 
     def render(self):
         self._load_frontend()
