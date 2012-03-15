@@ -57,6 +57,22 @@ class ContainerMeta(abc.ABCMeta):
             cls.__subcontainers__ = subcontainers
         super(ContainerMeta, cls).__init__(clsname, bases, dict_)
 
+class ErrorDict(Mapping):
+    def __init__(self, owner):
+        self.owner = weakref.proxy(owner)
+        self._fields = owner._fields
+
+    @traverse('__errors__')
+    def __getitem__(self, key):
+        return self.owner._errors[key]
+
+    def __iter__(self):
+        return iter(self.owner)
+
+    def __len__(self):
+        return len(self.owner)
+
+
 class RawDict(Mapping):
     def __init__(self, owner):
         self.owner = owner
@@ -112,6 +128,7 @@ class Container(Mapping, metaclass=ContainerMeta):
             fields[fname] = field
         self._fields = fields
         self.__fields__ = FieldsDict(self)
+        self.__errors__ = ErrorDict(self)
         self.__subcontainers__ = subcontainers
         self.__reset__()
 
@@ -132,7 +149,7 @@ class Container(Mapping, metaclass=ContainerMeta):
     def __valid__(self):
         """Returns true if form is valid"""
         return (
-            not bool(self.__errors__) and 
+            not bool(self._errors) and 
             all (sub.__valid__ for sub in self.__subcontainers__)
         )
 
@@ -143,7 +160,7 @@ class Container(Mapping, metaclass=ContainerMeta):
     def __reset__(self):
         """Resets the container. Clears all fields and errors"""
         self._values = {}
-        self.__errors__ = {}
+        self._errors = {}
         (f.__reset__() for f in self.__subcontainers__)
 
     def __iter__(self):
@@ -174,7 +191,7 @@ class Container(Mapping, metaclass=ContainerMeta):
                 validator(self)
             except FormValidationError as err:
                 for field in err.fields:
-                    self.__errors__[field] = err
+                    self._errors[field] = err
                 valid = False
         for subcontainer in self.__subcontainers__:
             subcontainer._run_validators()

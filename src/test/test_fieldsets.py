@@ -37,3 +37,15 @@ class Test(unittest.TestCase):
         self.assertTrue(self.form.__valid__)
         self.assertEqual(self.form['personals-name'], 'Galahad')
         self.assertEqual(self.form['age'], 25)
+        
+    def test_invalid(self):
+        """Testing a completely valid flow"""
+        self.form.__raw__ = {
+            'personals-name': 'Galahad', 'personals-nickname': 'the Dirty',
+            'age': '25',
+        }
+        self.assertFalse(self.form.__valid__)
+        self.assertEqual(
+             self.form.__errors__['personals-name'].message,
+            'Sir Galahad must be pure'
+        )

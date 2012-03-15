@@ -30,7 +30,7 @@ class Form(Container):
             try:
                 field_parent._values[key] = field._raw2python(v, self)
             except ValidationError as err:
-                field_parent.__errors__[key] = err
+                field_parent._errors[key] = err
                 if self.__stop_on_first__:
                     return False
                 valid = False
