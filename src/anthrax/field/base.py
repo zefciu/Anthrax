@@ -51,7 +51,7 @@ widgets:
     regexp = None
     regexp_message = _('Value should match regexp {regexp}')
     _regexp_compiled = None
-    min_len = 0
+    min_len = None
     min_len_message = _("Value can't be shorter than {min_len}")
     max_len = None
     max_len_message = _("Value can't be longer than {max_len}")
