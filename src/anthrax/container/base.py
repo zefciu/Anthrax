@@ -7,6 +7,33 @@ from decorator import decorator
 from anthrax.field.base import Field
 from anthrax.frontend import Frontend
 from anthrax.exc import FormValidationError
+from anthrax.introspector import TOP, BOTTOM, BEFORE, AFTER
+
+def add_child(parent, name, item, mode):
+    attr = 'place' if mode == 'field' else '__place__'
+    place = getattr(item, attr, BOTTOM)
+    if place == BOTTOM:
+        parent[name] = item
+    elif place == TOP:
+        parent[name] = item
+        parent.move_to_end(name, False)
+    elif isinstance(place, tuple):
+        place, rel = place
+        #Copy the keys, so we can modify the while iterating on the fly
+        keys = list(parent.keys())
+        if rel not in keys:
+            raise ValueError("Field with name '{}' doesn't exist".format(rel))
+        if place == AFTER:
+            for key in keys: 
+                parent.move_to_end(key)
+                if key == rel:
+                    parent[rel] = item
+        elif place == BEFORE:
+            for key in reversed(keys): 
+                parent.move_to_end(key, False)
+                if key == rel:
+                    parent[rel] = item
+                    parent.move_to_end(rel, False)
 
 def traverse(attrib=None):
     def wrap(fun):
@@ -31,19 +58,30 @@ class ContainerMeta(abc.ABCMeta):
         return OrderedDict()
 
     def __init__(cls, clsname, bases, dict_):
-        fields = OrderedDict()
         subcontainers = []
+        introspector = dict_.pop('__introspector__', None)
+        if introspector is not None:
+            if isinstance(introspector, tuple):
+                name, source = introspector
+                IntrospectorClass = load_entry_point(
+                    'anthrax.introspector', name, 'introspector'
+                )
+                introspector = IntrospectorClass(source)
+            fields = introspector.get_fields()
+        else:
+            fields = OrderedDict()
+        
         for itemname, item in dict_.items():
             if isinstance(item, Field):
                 item.name = itemname
-                fields[itemname] = item
+                add_child(fields, itemname, item, 'field')
             if isinstance(item, ContainerMeta):
                 item = ContainerMeta(
                     itemname, (item,), {
                         '__name__': itemname
                     }
                 )
-                fields[itemname] = item
+                add_child(fields, itemname, item, 'container')
                 subcontainers.append(item)
         if fields:
             for base in bases:
@@ -56,6 +94,9 @@ class ContainerMeta(abc.ABCMeta):
             cls.__fields__ = fields
             cls.__subcontainers__ = subcontainers
         super(ContainerMeta, cls).__init__(clsname, bases, dict_)
+
+
+
 
 class ErrorDict(Mapping):
     def __init__(self, owner):
