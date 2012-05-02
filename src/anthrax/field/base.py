@@ -43,6 +43,10 @@ max_len_message:
     An error message to display when the value is longer than max_len. 
     Can contain a {max_len} placeholder.
 
+mode:
+    If None this field will be displayed in all modes. Other value - this
+    field will be restricted to a mode.
+
 widgets:
     Widgets that can represent this field. Preferred ones should be put in
     front.
@@ -55,6 +59,7 @@ widgets:
     min_len_message = _("Value can't be shorter than {min_len}")
     max_len = None
     max_len_message = _("Value can't be longer than {max_len}")
+    mode = None
     label = _('')
 
     def __init__(self, **kwargs):

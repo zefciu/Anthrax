@@ -171,15 +171,22 @@ class FieldsDict(Mapping):
 class Container(Mapping, metaclass=ContainerMeta):
     __validators__ = []
 
-    def __init__(self):
+    def __init__(self, mode=None):
         self._load_validators()
+        self._mode = mode
         fields = OrderedDict()
         subcontainers = []
         for fname, field in type(self).__fields__.items():
             if isinstance(field, Field):
+                if (
+                    mode is not None and
+                    field.mode is not None and
+                    mode != field.mode
+                ):
+                    continue
                 field = BoundField(field, self)
             if isinstance(field, ContainerMeta):
-                field = field()
+                field = field(mode)
                 subcontainers.append(field)
             fields[fname] = field
         self._fields = fields
@@ -200,6 +207,10 @@ class Container(Mapping, metaclass=ContainerMeta):
             if isinstance(field, Container):
                 field._frontend = self._frontend
                 field._negotiate_widgets()
+
+    @property
+    def mode(self):
+        return self._mode
 
     @property
     def __valid__(self):
