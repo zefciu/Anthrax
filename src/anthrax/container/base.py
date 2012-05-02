@@ -11,6 +11,8 @@ from anthrax.introspector import TOP, BOTTOM, BEFORE, AFTER
 
 def add_child(parent, name, item, mode):
     attr = 'place' if mode == 'field' else '__place__'
+    if name in parent:
+        del parent[name]
     place = getattr(item, attr, BOTTOM)
     if place == BOTTOM:
         parent[name] = item
@@ -136,6 +138,18 @@ class RawDict(Mapping):
     def __len__(self):
         return len(self.owner)
 
+class BoundField():
+    def __init__(self, field, parent):
+        self._field = field
+        self.parent = parent
+
+    def __getattribute__(self, key):
+        try:
+            return object.__getattribute__(self, key)
+        except AttributeError:
+            return getattr(self._field, key)
+            
+
 class FieldsDict(Mapping):
     def __init__(self, owner):
         self.owner = weakref.proxy(owner)
@@ -162,7 +176,8 @@ class Container(Mapping, metaclass=ContainerMeta):
         fields = OrderedDict()
         subcontainers = []
         for fname, field in type(self).__fields__.items():
-            field.__parent__ = weakref.proxy(self)
+            if isinstance(field, Field):
+                field = BoundField(field, self)
             if isinstance(field, ContainerMeta):
                 field = field()
                 subcontainers.append(field)

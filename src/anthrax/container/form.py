@@ -24,7 +24,7 @@ class Form(Container):
         self.raw_values = dict_
         for k, v in dict_.items():
             field = self.__fields__[k]    
-            field_parent = field.__parent__
+            field_parent = field.parent
             key = k.rsplit('-', 1)[-1]
             try:
                 field_parent._values[key] = field._raw2python(v, self)

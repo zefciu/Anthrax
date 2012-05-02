@@ -10,3 +10,5 @@ class LongTextInput(TextInput):
     columns = 80
     rows = 25
 
+class Hidden(Widget):
+    """Value storage that is invisible to user"""
