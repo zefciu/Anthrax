@@ -8,6 +8,7 @@ from anthrax.field.base import Field
 from anthrax.frontend import Frontend
 from anthrax.exc import FormValidationError
 from anthrax.introspector import TOP, BOTTOM, BEFORE, AFTER
+from anthrax.util import load_entry_point
 
 def add_child(parent, name, item, mode):
     attr = 'place' if mode == 'field' else '__place__'
@@ -61,7 +62,7 @@ class ContainerMeta(abc.ABCMeta):
 
     def __init__(cls, clsname, bases, dict_):
         subcontainers = []
-        introspector = dict_.pop('__introspector__', None)
+        introspector = dict_.pop('__introspect__', None)
         if introspector is not None:
             if isinstance(introspector, tuple):
                 name, source = introspector
