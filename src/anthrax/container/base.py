@@ -4,7 +4,7 @@ from collections import Sequence, Mapping, OrderedDict
 
 from decorator import decorator
 
-from anthrax.field.base import Field
+from anthrax.field.base import Field, BoundField
 from anthrax.frontend import Frontend
 from anthrax.exc import FormValidationError
 from anthrax.introspector import TOP, BOTTOM, BEFORE, AFTER
@@ -138,18 +138,6 @@ class RawDict(Mapping):
 
     def __len__(self):
         return len(self.owner)
-
-class BoundField():
-    def __init__(self, field, parent):
-        self._field = field
-        self.parent = parent
-
-    def __getattribute__(self, key):
-        try:
-            return object.__getattribute__(self, key)
-        except AttributeError:
-            return getattr(self._field, key)
-            
 
 class FieldsDict(Mapping):
     def __init__(self, owner):

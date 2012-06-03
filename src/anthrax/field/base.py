@@ -4,14 +4,26 @@ from gettext import gettext as _
 
 from anthrax.exc import ValidationError
 
-class BoundField(object):
-    def __init__(self, form):
-        self.field = form
+class BoundField():
+    def __init__(self, field, parent):
+        self._field = field
+        self.parent = parent
 
+    def __getattribute__(self, key):
+        if key in set(['parent', '_field']):
+            return object.__getattribute__(self, key)
+        else:
+            return getattr(object.__getattribute__(self, '_field'), key)
 
-    def __getattr__(self, key):
-        return getattr(self.field, key)
+    def __setattr__(self, key, value):
+        if key in set(['parent', '_field']):
+            return object.__setattr__(self, key, value)
+        setattr(self._field, key, value)
 
+    def __delattr__(self, key):
+        if key in set(['parent', '_field']):
+            return object.__delattr__(self, key)
+        delattr(self._field, key)
 
 class Field(object, metaclass=abc.ABCMeta):
     """Abstract Field class. Fields encapsulate validation and
@@ -165,3 +177,5 @@ widgets:
 
     def render(self):
         return self.widget.render()
+
+Field.register(BoundField)
