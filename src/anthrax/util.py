@@ -14,3 +14,9 @@ def load_entry_point(group, name, human_name):
             'found.'.format(human_name, name)
         )
     return list_[0].load()
+
+def bind_fields(dict_, form):
+    """Iterates over a mapping. Sets every object's ``name`` attribute
+    to a key value and ``form`` to ``form`` argument"""
+    for k, v in dict_.items():
+        v.name = k

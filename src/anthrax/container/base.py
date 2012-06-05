@@ -70,7 +70,7 @@ class ContainerMeta(abc.ABCMeta):
                     'anthrax.introspector', name, 'introspector'
                 )
                 introspector = IntrospectorClass(source)
-            fields = introspector.get_fields()
+            fields = introspector.get_fields(cls)
         else:
             fields = OrderedDict()
         

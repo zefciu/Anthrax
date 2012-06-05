@@ -1,5 +1,6 @@
 import abc
 import re
+import types
 from gettext import gettext as _
 
 from anthrax.exc import ValidationError
@@ -9,21 +10,27 @@ class BoundField():
         self._field = field
         self.parent = parent
 
-    def __getattribute__(self, key):
-        if key in set(['parent', '_field']):
-            return object.__getattribute__(self, key)
+    def __getattr__(self, key):
+        value = getattr(self._field, key)
+        return value
+
+    def render(self):
+        return self.widget.render()
+
+    def __str__(self):
+        return '<BoundField: {0}>'.format(self._field)
+
+    @property
+    def value(self):
+        return self.parent.get(self.name, None)
+
+    @property
+    def raw_value(self):
+        v = self.value
+        if self.value is None:
+            return ''
         else:
-            return getattr(object.__getattribute__(self, '_field'), key)
-
-    def __setattr__(self, key, value):
-        if key in set(['parent', '_field']):
-            return object.__setattr__(self, key, value)
-        setattr(self._field, key, value)
-
-    def __delattr__(self, key):
-        if key in set(['parent', '_field']):
-            return object.__delattr__(self, key)
-        delattr(self._field, key)
+            return self._python2raw(self.value)
 
 class Field(object, metaclass=abc.ABCMeta):
     """Abstract Field class. Fields encapsulate validation and
@@ -81,19 +88,7 @@ widgets:
     def __get__(self, inst, cls):
         return BoundField(inst)
 
-    @property
-    def value(self):
-        if not hasattr(self, 'form'):
-            raise AttributeError('Unbound field')
-        return self.form.get(self.name, None)
 
-    @property
-    def raw_value(self):
-        v = self.value
-        if self.value is None:
-            return ''
-        else:
-            return self._python2raw(self.value)
 
     @property
     def regexp_compiled(self):
@@ -174,8 +169,5 @@ widgets:
                 )
             )
         return self.from_python(pvalue)
-
-    def render(self):
-        return self.widget.render()
 
 Field.register(BoundField)
