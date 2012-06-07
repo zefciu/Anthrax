@@ -86,6 +86,11 @@ class ContainerMeta(abc.ABCMeta):
                 )
                 add_child(fields, itemname, item, 'container')
                 subcontainers.append(item)
+            if isinstance(item, Mapping) and not isinstance(item, Container):
+                """This is a configuration for a previously reflected field."""
+                field = fields[itemname]
+                for k, v in item.items():
+                    setattr(field, k, v)
         if fields:
             for base in bases:
                 if hasattr(base, 'fields'):
