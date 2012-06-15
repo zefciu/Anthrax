@@ -13,5 +13,5 @@ class Introspector(metaclass=abc.ABCMeta):
         self.source = source
 
     @abc.abstractmethod
-    def get_fields(self):
+    def get_fields(self, form):
         pass

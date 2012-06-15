@@ -113,7 +113,7 @@ class ErrorDict(Mapping):
 
     @traverse('__errors__')
     def __getitem__(self, key):
-        return self.owner._errors[key]
+        return self.owner._errors.get(key)
 
     def __iter__(self):
         return iter(self.owner)

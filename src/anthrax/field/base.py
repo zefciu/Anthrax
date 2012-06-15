@@ -1,9 +1,12 @@
 import abc
 import re
 import types
+import random
+from string import ascii_lowercase
 from gettext import gettext as _
 
 from anthrax.exc import ValidationError
+
 
 class BoundField():
     def __init__(self, field, parent):
@@ -14,8 +17,8 @@ class BoundField():
         value = getattr(self._field, key)
         return value
 
-    def render(self):
-        return self.widget.render()
+    def render(self, **kwargs):
+        return self.widget.render(**kwargs)
 
     def __str__(self):
         return '<BoundField: {0}>'.format(self._field)
@@ -84,6 +87,10 @@ widgets:
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+        if 'id' not in kwargs:
+            self.id = ''.join(
+                (random.choice(ascii_lowercase) for i in range(16))
+            )
 
     def __get__(self, inst, cls):
         return BoundField(inst)

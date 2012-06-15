@@ -12,8 +12,9 @@ class Form(Container):
 
     __stop_on_first__ = False
 
-    def __init__(self, mode=None):
+    def __init__(self, mode=None, **kwargs):
         self._frontend_name_cache = None
+        self.kwargs = kwargs
         super(Form, self).__init__(mode)
 
     @Container.__raw__.setter

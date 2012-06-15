@@ -6,5 +6,5 @@ or not be supported by a given frontend"""
     def __init__(self, view):
         self.view = view
     
-    def render(self):
-        return self.view(field = self.field, widget = self)
+    def render(self, **kwargs):
+        return self.view(field = self.field, widget = self, **kwargs)
