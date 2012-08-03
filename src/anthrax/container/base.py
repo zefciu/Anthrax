@@ -22,7 +22,7 @@ def add_child(parent, name, item, mode):
         parent.move_to_end(name, False)
     elif isinstance(place, tuple):
         place, rel = place
-        #Copy the keys, so we can modify the while iterating on the fly
+        #Copy the keys, so we can modify them while iterating on the fly
         keys = list(parent.keys())
         if rel not in keys:
             raise ValueError("Field with name '{}' doesn't exist".format(rel))
@@ -75,6 +75,8 @@ class ContainerMeta(abc.ABCMeta):
             fields = OrderedDict()
         
         for itemname, item in dict_.items():
+            if item is None and itemname in fields:
+                del fields[itemname]
             if isinstance(item, Field):
                 item.name = itemname
                 add_child(fields, itemname, item, 'field')

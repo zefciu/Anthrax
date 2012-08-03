@@ -5,6 +5,9 @@ class TextInput(Widget):
     supress_too_long = True
     supress_bad_regexp = False
 
+class PasswordInput(TextInput):
+    """Text input for passwords"""
+
 class LongTextInput(TextInput):
     """Multirow text input"""
     columns = 80

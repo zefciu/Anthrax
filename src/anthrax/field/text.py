@@ -13,3 +13,8 @@ class TextField(Field):
 
     def from_python(self, value):
         return super(TextField, self).from_python(value)
+
+class EmailField(TextField):
+    """Like TextField, but checks input to be correct email."""
+
+    regexp = r'[a-z0-9]+@([a-z0-9]+\.)*[a-z0-9]+'
