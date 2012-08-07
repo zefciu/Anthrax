@@ -28,7 +28,7 @@ class Form(Container):
             field_parent = field.parent
             key = k.rsplit('-', 1)[-1]
             try:
-                field_parent._values[key] = field._raw2python(v, self)
+                field_parent._values[key] = field._raw2python(v)
             except ValidationError as err:
                 field_parent._errors[key] = err
                 if self.__stop_on_first__:

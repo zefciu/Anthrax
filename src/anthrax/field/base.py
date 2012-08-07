@@ -154,7 +154,7 @@ widgets:
         parameters."""
         pass 
 
-    def _raw2python(self, rvalue, form):
+    def _raw2python(self, rvalue):
         """This method shouldn't normally be overridden. It is called by Form
         object to process the raw value."""
         self._declarative_raw_validation(rvalue)
