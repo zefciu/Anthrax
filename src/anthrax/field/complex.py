@@ -24,7 +24,7 @@ class ListField(Field):
     drop_blanks = True
     subfield = None
 
-    widgets = ['LongTextInput']
+    widgets = [LongTextInput]
 
     def to_python(self, value):
         value = [value]

@@ -18,8 +18,9 @@ class Frontend(metaclass=abc.ABCMeta):
             if widget in self.widgets:
                 return widget(view = self.widgets[widget])
         raise NotImplementedError(
-            "Frontend {0} couldn't find a widget to use with field {1}".format(
-                self, field
+            """Frontend {0} couldn't find a widget to use with field {1}.
+Tried: {2}""".format(
+                self, field, ', '.join(field.widgets)
             )
         )
 
