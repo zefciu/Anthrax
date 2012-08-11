@@ -192,7 +192,32 @@ class Container(Mapping, metaclass=ContainerMeta):
         self.__reset__()
 
     def _load_validators(self):
-        self._validators = self.__validators__[:]
+        self._validators = []
+        for validator in self.__validators__:
+            if isinstance(validator, tuple):
+                validator_name = validator[0]
+                if isinstance(validator[-1], Mapping):
+                    kwargs = validator[-1]
+                    fields = validator[1:-1]
+                else:
+                    kwargs = {}
+                    fields = validator[1:]
+                validator_callable = load_entry_point(
+                    'anthrax.validator', validator_name, 'validator'
+                )
+                def validator_wrapper(form):
+                    try:
+                        values = [form[field] for field in fields]
+                        validator_callable(form, *values, **kwargs)
+                    except FormValidationError as err:
+                        err.fields = fields
+                        raise err
+                validator_wrapper.__name__ = validator_name
+                self._validators.append(validator_wrapper)
+
+            else:
+                self._validators.append(validator)
+
 
     def _negotiate_widgets(self):
         for field in self._fields.values():
