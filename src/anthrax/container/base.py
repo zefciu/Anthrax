@@ -62,8 +62,21 @@ class ContainerMeta(abc.ABCMeta):
 
     def __init__(cls, clsname, bases, dict_):
         subcontainers = []
+        fields = None
+        for base in bases:
+            if hasattr(base, '__fields__'):
+                if fields is None:
+                    fields = base.__fields__.copy()
+                else:
+                    raise AttributeError(
+                        "Sorry, can't handle this multiple inheritance"
+                    )
         reflector = dict_.pop('__reflect__', None)
         if reflector is not None:
+            if fields is not None:
+                raise AttributeError(
+                    "Sorry, can't use both inheritance and reflection"
+                )
             if isinstance(reflector, tuple):
                 name, source = reflector
                 ReflectorClass = load_entry_point(
@@ -71,7 +84,7 @@ class ContainerMeta(abc.ABCMeta):
                 )
                 reflector = ReflectorClass(source)
             fields = reflector.get_fields(cls)
-        else:
+        if fields is None:
             fields = OrderedDict()
         
         for itemname, item in dict_.items():
@@ -89,20 +102,12 @@ class ContainerMeta(abc.ABCMeta):
                 add_child(fields, itemname, item, 'container')
                 subcontainers.append(item)
             if isinstance(item, Mapping) and not isinstance(item, Container):
-                """This is a configuration for a previously reflected field."""
+                # This is a configuration for a previously reflected field.
                 field = fields[itemname]
                 for k, v in item.items():
                     setattr(field, k, v)
-        if fields:
-            for base in bases:
-                if hasattr(base, 'fields'):
-                    raise AttributeError(
-                        'Only one class in inheritance chain can define fields'
-                        ' consider using unnamed fieldsets for more dynamic'
-                        ' form creation.'
-                    )
-            cls.__fields__ = fields
-            cls.__subcontainers__ = subcontainers
+        cls.__fields__ = fields
+        cls.__subcontainers__ = subcontainers
         super(ContainerMeta, cls).__init__(clsname, bases, dict_)
 
 
