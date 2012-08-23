@@ -3,6 +3,7 @@ import unittest
 from anthrax.container.form import Form
 from anthrax.exc import FormValidationError
 from anthrax.field import TextField, IntegerField
+from anthrax.reflector import TOP, BEFORE, AFTER
 from util import dummy_frontend
 
 class Test(unittest.TestCase):
@@ -40,3 +41,45 @@ class Test(unittest.TestCase):
         assert 'age' in form.__fields__
         self.assertEqual(form.__fields__['age'].min, 12)
         self.assertEqual(form.__fields__['age'].max, 30)
+
+    def testAddOnTop(self):
+        class FormWithTitle(self.TestForm):
+            title = TextField(place=TOP)
+        form = FormWithTitle()
+        self.assertListEqual (
+            list(form.__fields__.keys()), ['title', 'name', 'nickname', 'age']
+        )
+
+    def testAddAfter(self):
+        class FormWithLastName(self.TestForm):
+            lastname = TextField(place=(AFTER, 'name'))
+        form = FormWithLastName()
+        self.assertListEqual (list(form.__fields__.keys()), [
+                'name', 'lastname', 'nickname', 'age'
+            ])
+
+    def testAddBefore(self):
+        class FormWithLastName(self.TestForm):
+            lastname = TextField(place=(BEFORE, 'nickname'))
+        form = FormWithLastName()
+        self.assertListEqual (list(form.__fields__.keys()), [
+            'name', 'lastname', 'nickname', 'age'
+        ])
+
+    def testAddWrongPlace(self):
+        def wrong():
+            class FormWithWrongAdd(self.TestForm):
+                lastname = TextField(place=(BEFORE, 'title'))
+        self.assertRaises(ValueError, wrong)
+
+    def testMultipleInheritance(self):
+        def wrong():
+            class SwallowForm(Form):
+                continent = TextField()
+                strength = IntegerField()
+
+            class InvalidHybrid(self.TestForm, Form):
+                pass
+        self.assertRaises(AttributeError, wrong)
+        
+

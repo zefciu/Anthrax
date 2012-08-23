@@ -25,18 +25,18 @@ def add_child(parent, name, item, mode):
         #Copy the keys, so we can modify them while iterating on the fly
         keys = list(parent.keys())
         if rel not in keys:
-            raise ValueError("Field with name '{}' doesn't exist".format(rel))
+            raise ValueError("Field with name '{0}' doesn't exist".format(rel))
         if place == AFTER:
             for key in keys: 
                 parent.move_to_end(key)
                 if key == rel:
-                    parent[rel] = item
+                    parent[name] = item
         elif place == BEFORE:
             for key in reversed(keys): 
                 parent.move_to_end(key, False)
                 if key == rel:
-                    parent[rel] = item
-                    parent.move_to_end(rel, False)
+                    parent[name] = item
+                    parent.move_to_end(name, False)
 
 def traverse(attrib=None):
     def wrap(fun):
@@ -73,7 +73,7 @@ class ContainerMeta(abc.ABCMeta):
                     )
         reflector = dict_.pop('__reflect__', None)
         if reflector is not None:
-            if fields is not None:
+            if fields:
                 raise AttributeError(
                     "Sorry, can't use both inheritance and reflection"
                 )
