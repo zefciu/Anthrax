@@ -78,6 +78,8 @@ class Test(unittest.TestCase):
             'name': 'Galahad', 'nickname': 'the Promiscuous', 'age': '25'
         }
         self.assertFalse(self.form.__valid__)
+        self.assertSetEqual(set(self.form.__errors__), {'name', 'nickname'})
+        self.assertEqual(len(self.form.__errors__), 2)
         self.assertEqual(
             self.form.__errors__['name'].message,
             'Sir Galahad must be pure'

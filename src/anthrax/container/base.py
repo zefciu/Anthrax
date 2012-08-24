@@ -102,15 +102,13 @@ class ContainerMeta(abc.ABCMeta):
                 add_child(fields, itemname, item, 'container')
                 subcontainers.append(item)
             if isinstance(item, Mapping) and not isinstance(item, Container):
-                # This is a configuration for a previously reflected field.
+                # This is a configuration for a reflected or inherited field.
                 field = fields[itemname]
                 for k, v in item.items():
                     setattr(field, k, v)
         cls.__fields__ = fields
         cls.__subcontainers__ = subcontainers
         super(ContainerMeta, cls).__init__(clsname, bases, dict_)
-
-
 
 
 class ErrorDict(Mapping):
@@ -123,10 +121,10 @@ class ErrorDict(Mapping):
         return self.owner._errors.get(key)
 
     def __iter__(self):
-        return iter(self.owner)
+        return iter(self.owner._errors)
 
     def __len__(self):
-        return len(self.owner)
+        return len(self.owner._errors)
 
 
 class RawDict(Mapping):
@@ -136,10 +134,10 @@ class RawDict(Mapping):
 
     @traverse('__raw__')
     def __getitem__(self, key):
-        field = self.owner.fields[key]
+        field = self.owner._fields[key]
         value = self.owner.get(key, None)
-        if isinstance(value, Container):
-            return value
+        if isinstance(field, Container):
+            return field.__raw__
         if value:
             return field._python2raw(value)
         return ''
@@ -254,6 +252,7 @@ class Container(Mapping, metaclass=ContainerMeta):
         """Resets the container. Clears all fields and errors"""
         self._values = {}
         self._errors = {}
+        self._raw_values = {}
         (f.__reset__() for f in self.__subcontainers__)
 
     def __iter__(self):

@@ -81,5 +81,11 @@ class Test(unittest.TestCase):
             class InvalidHybrid(self.TestForm, Form):
                 pass
         self.assertRaises(AttributeError, wrong)
-        
 
+    def testReconfigure(self):
+        class FormWithDifferentAge(self.TestForm):
+            age = {'min': 12, 'max': 30}
+        form = FormWithDifferentAge()
+        assert 'age' in form.__fields__
+        self.assertEqual(form.__fields__['age'].min, 12)
+        self.assertEqual(form.__fields__['age'].max, 30)
