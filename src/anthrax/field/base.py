@@ -92,10 +92,8 @@ widgets:
                 (random.choice(ascii_lowercase) for i in range(16))
             )
 
-    def __get__(self, inst, cls):
-        return BoundField(inst)
-
-
+    # def __get__(self, inst, cls):
+    #     return BoundField(inst)
 
     @property
     def regexp_compiled(self):

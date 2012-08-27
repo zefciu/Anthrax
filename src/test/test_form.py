@@ -29,6 +29,7 @@ class Test(unittest.TestCase):
 
     def test_valid(self):
         """Testing a completely valid flow"""
+        self.assertEqual(self.form.__fields__['age'].raw_value, '')
         self.form.__raw__ = {
             'name': 'Galahad', 'nickname': 'the Pure', 'age': '25',
         }
@@ -36,6 +37,15 @@ class Test(unittest.TestCase):
         self.assertDictEqual(dict(self.form), {
             'name': 'Galahad', 'nickname': 'the Pure', 'age': 25,
         })
+        self.assertEqual(self.form.__fields__['age'].value, 25)
+        self.assertEqual(self.form.__fields__['age'].raw_value, '25')
+
+    def test_fields(self):
+        """Some tests of correct field behavior."""
+        wanted_name = '<BoundField: <anthrax.field.text.TextField'
+        self.assertEqual(
+            str(self.form.__fields__['name'])[:len(wanted_name)], wanted_name
+        )
 
     def test_invalid_regexp(self):
         """Testing an error with input unmatching regexp"""
