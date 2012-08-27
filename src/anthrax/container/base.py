@@ -233,9 +233,9 @@ class Container(Mapping, metaclass=ContainerMeta):
                 w = self._frontend.negotiate_widget(field)
                 field.widget = w
                 w.field = weakref.proxy(field)
-            if isinstance(field, Container):
-                field._frontend = self._frontend
-                field._negotiate_widgets()
+            # if isinstance(field, Container):
+            #     field._frontend = self._frontend
+            #     field._negotiate_widgets()
 
     @property
     def mode(self):
@@ -269,10 +269,6 @@ class Container(Mapping, metaclass=ContainerMeta):
     @traverse()
     def __getitem__(self, key):
         return self._values[key]
-
-    @traverse()
-    def __delitem__(self, key):
-        del self._values[key]
 
     @traverse()
     def __setitem__(self, key, value):

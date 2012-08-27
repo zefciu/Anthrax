@@ -6,13 +6,15 @@ from anthrax.field import TextField, IntegerField
 from anthrax.reflector import Reflector
 from anthrax.util import bind_fields
 
-def dummy_view(*args, **kwargs):
-    return ''
+def form_view(*args, **kwargs):
+    return 'form'
+
+def input_view(*args, **kwargs):
+    return 'input'
 
 dummy_frontend = Frontend({
-    'text_input': dummy_view,
-    'long_text_input': dummy_view,
-}, dummy_view)
+    'text_input': input_view,
+}, form_view)
 
 class SwallowReflector(Reflector):
     """Dummy reflector that ignores input and always return same thing."""

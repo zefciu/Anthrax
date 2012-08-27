@@ -31,6 +31,7 @@ class Test(unittest.TestCase):
     def test_mode_disabled(self):
         """Testing a form a mode disabling field"""
         form = self.TestForm(PEASANT)
+        self.assertEqual(form.mode, PEASANT)
         self.assertFalse('personals-nickname' in form.__fields__)
 
     def test_mode_enabled(self):
