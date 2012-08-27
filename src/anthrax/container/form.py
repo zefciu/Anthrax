@@ -10,8 +10,6 @@ from anthrax.container.base import Container
 
 class Form(Container):
 
-    __stop_on_first__ = False
-
     def __init__(self, mode=None, **kwargs):
         self._frontend_name_cache = None
         self.kwargs = kwargs
@@ -31,8 +29,6 @@ class Form(Container):
                 field_parent._values[key] = field._raw2python(v)
             except ValidationError as err:
                 field_parent._errors[key] = err
-                if self.__stop_on_first__:
-                    return False
                 valid = False
         if valid:
             self._run_validators()
