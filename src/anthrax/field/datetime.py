@@ -12,7 +12,7 @@ class DateField(OrderedField):
 
     def to_python(self, value):
         try:
-            return dt.datetime.strptime(value, self.date_format)
+            return dt.datetime.strptime(value, self.date_format).date()
         except ValueError:
             raise ValidationError(
                 message = _('Misformed date.')
