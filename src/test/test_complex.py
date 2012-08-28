@@ -36,3 +36,11 @@ class Test(unittest.TestCase):
             self.form1.__errors__['names'].message,
             'Write your name with a capital'
         )
+
+    def test_to_raw(self):
+        """Test conversion to raw value"""
+        self.form1['names'] = ['Galahad', 'Lancelot', 'Arthur', 'Pansy']
+        self.assertEqual(
+            self.form1.__raw__['names'],
+            'Galahad\nLancelot\nArthur\nPansy'
+        )
