@@ -22,6 +22,7 @@ class Test(unittest.TestCase):
                 regexp=r'^[A-Z][a-z]+$',
                 regexp_message='Write your name with a capital',
                 max_len=20, max_len_message='You must be kidding!',
+                min_len=3, min_len_message='Your name is kinda short!',
             )
             nickname = TextField(max_len=30)
             age = IntegerField(min=7, max=99)
@@ -68,6 +69,18 @@ class Test(unittest.TestCase):
         self.assertEqual(
             self.form.__errors__['name'].message,
             'You must be kidding!'
+        )
+
+    def test_too_short(self):
+        """Testing an error with input too short"""
+        self.form.__raw__ = {
+            'name': 'Ga', 'nickname': 'the Pure',
+            'age': '25'
+        }
+        self.assertFalse(self.form.__valid__)
+        self.assertEqual(
+            self.form.__errors__['name'].message,
+            'Your name is kinda short!'
         )
 
     def test_too_much(self):
