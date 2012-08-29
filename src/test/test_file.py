@@ -1,9 +1,12 @@
 import unittest
 import cgi
+import os
 
 from anthrax.container import Form
 from anthrax.field import FileField
 from util import dummy_frontend
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 def _create_fs(mimetype, content):
     fs = cgi.FieldStorage()
@@ -21,16 +24,26 @@ class Test(unittest.TestCase):
             __frontend__ = dummy_frontend
             resume = FileField(
                 max_len=256,
-                accept_mime=('text/*')
+                accept_mime=('text/*'),
+                directory=HERE,
             )
         self.form = TestForm()
 
-    def test_ok(self):
+    def test_from_fs_ok(self):
+        """Valid input by field storage."""
         fs = _create_fs('text/plain', 'Lorem ipsum dolor sit amet')
         self.form.__raw__ = {'resume': fs}
         self.assertTrue(self.form.__valid__)
         self.assertEqual(
             self.form['resume'].file.read(), 'Lorem ipsum dolor sit amet'
+        )
+
+    def test_from_filename_ok(self):
+        """Valid input by field storage."""
+        self.form.__raw__ = {'resume': 'lorem.txt'}
+        self.assertTrue(self.form.__valid__)
+        self.assertEqual(
+            self.form['resume'].file.read(), 'Lorem ipsum dolor sit amet\n'
         )
 
     def test_wrong_mime(self):

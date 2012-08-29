@@ -1,5 +1,6 @@
 import cgi
 import mimetypes
+import os
 
 from gettext import gettext as _
 from anthrax.field.base import Field
@@ -8,15 +9,20 @@ from anthrax.exc import ValidationError
 
 class AnthraxFileWrapper(object):
     """A common interface for differently stored files."""
-    def __init__(self, arg):
+    def __init__(self, arg, field):
         if isinstance(arg, cgi.FieldStorage):
             self.file = arg.file
             self.mimetype = arg.type
             self.field_storage = arg
         elif isinstance(arg, str):
+            if field.directory is None:
+                raise ValidationError("This field doesn't support filenames")
+            if os.path.isabs(arg):
+                raise ValidationError("Absolute paths aren't allowed")
             self.filename = arg
-            self.file = open(arg, 'r')
-            self.mimetype = mimetypes.guess_type(arg)
+            full_path = os.path.join(field.directory, arg)
+            self.file = open(full_path, 'r')
+            self.mimetype, encoding = mimetypes.guess_type(arg)
         else:
             raise TypeError("Can't instantiate wrapper with {}!".format(
                 type(arg)))
@@ -31,6 +37,7 @@ class FileField(Field):
     """
     accept_mime = {'*/*'}
     widgets = [FileUpload, TextInput]
+    directory = None
 
     def __init__(self, *args, **kwargs):
         super(FileField, self).__init__(*args, **kwargs)
@@ -40,15 +47,10 @@ class FileField(Field):
             self.accept_mime = set(self.accept_mime)
 
     def to_python(self, value):
-        return AnthraxFileWrapper(value)
+        return AnthraxFileWrapper(value, self)
 
     def from_python(self, value):
         return None
-
-    def validate_raw(self, value):
-        if isinstance(value, str):
-            if os.path.commonprefix([value, self.directory]) != self.directory:
-                raise ValidationError(_('Invalid directory'))
 
     def validate_python(self, value):
         maintype, subtype = value.mimetype.split('/')
