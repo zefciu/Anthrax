@@ -3,7 +3,7 @@ import unittest
 from anthrax.container.form import Form
 from anthrax.exc import FormValidationError
 from anthrax.field import TextField, IntegerField
-from util import dummy_frontend
+from util import dummy_frontend, UnsupportedField
 
 class Test(unittest.TestCase):
     """Test basic form features"""
@@ -30,3 +30,12 @@ class Test(unittest.TestCase):
     def test_render(self):
         self.assertEqual(self.form.render(), 'form')
         self.assertEqual(self.form.__fields__['name'].render(), 'input')
+
+    def test_failed_negotiation(self):
+        class WrongForm(Form):
+            __frontend__ = dummy_frontend
+            name = UnsupportedField()
+        form = WrongForm()
+        def wrong():
+            form.render()
+        self.assertRaises(NotImplementedError, wrong)

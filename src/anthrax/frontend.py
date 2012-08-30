@@ -9,7 +9,9 @@ class Frontend(metaclass=abc.ABCMeta):
         self.widgets = {} 
         for k, v in widget_dict.items():
             try:
-                self.widgets[load_entry_point('anthrax.widget', k, 'widget')] = v
+                self.widgets[
+                    load_entry_point('anthrax.widget', k, 'widget')
+                ] = v
             except ValueError:
                 pass
 
@@ -23,4 +25,3 @@ Tried: {2}""".format(
                 self, field, ', '.join(field.widgets)
             )
         )
-

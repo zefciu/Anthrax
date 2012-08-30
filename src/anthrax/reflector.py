@@ -14,4 +14,4 @@ class Reflector(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_fields(self, form):
-        pass
+        """Override this method to return ordered dict of fields."""

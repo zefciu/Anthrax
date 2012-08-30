@@ -3,6 +3,7 @@ import pkg_resources as pr
 
 from anthrax.frontend import Frontend
 from anthrax.field import TextField, IntegerField
+from anthrax.widget import FileUpload
 from anthrax.reflector import Reflector
 from anthrax.util import bind_fields
 
@@ -14,7 +15,12 @@ def input_view(*args, **kwargs):
 
 dummy_frontend = Frontend({
     'text_input': input_view,
+    'not_installed': input_view,
 }, form_view)
+
+class UnsupportedField(TextField):
+    widgets = ['file_upload']
+
 
 class SwallowReflector(Reflector):
     """Dummy reflector that ignores input and always return same thing."""

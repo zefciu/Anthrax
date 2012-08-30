@@ -46,7 +46,46 @@ class Test(unittest.TestCase):
             self.form['resume'].file.read(), 'Lorem ipsum dolor sit amet\n'
         )
 
+    def test_from_abs_filename(self):
+        """Trying to inject absolute filename should be illegal"""
+        self.form.__raw__ = {'resume': '/usr/lib/lorem.txt'}
+        self.assertFalse(self.form.__valid__)
+        self.assertEqual(
+            self.form.__errors__['resume'].message,
+            "Absolute paths aren't allowed""",
+        )
+
+    def test_invalid_type(self):
+        """Shouldn't happen. The file gets some strange type."""
+        def wrong():
+            self.form.__raw__ = {'resume': 42}
+        self.assertRaises(TypeError, wrong)
+
     def test_wrong_mime(self):
         fs = _create_fs('application/x-python', 'print("Lorem ipsum")')
         self.form.__raw__ = {'resume': fs}
         self.assertFalse(self.form.__valid__)
+
+    def test_no_filenames(self):
+        """Test a field that only accepts upload."""
+        class TestForm(Form):
+            __frontend__ = dummy_frontend
+            resume = FileField(
+                max_len=256,
+                accept_mime=('text/*',),
+                # directory=HERE,
+            )
+        form = TestForm()
+        form.__raw__ = {'resume': 'lorem.txt'}
+        self.assertFalse(form.__valid__)
+        self.assertEqual(
+            form.__errors__['resume'].message,
+            "This field doesn't support filenames"
+        )
+
+    def test_to_python(self):
+        """You can't use to_python to get any meaningful data."""
+        with open(os.path.join(HERE, 'lorem.txt')) as f:
+            f.mimetype = 'text/plain'
+            self.form['resume'] = f
+            self.assertEqual(self.form.__raw__['resume'], None)

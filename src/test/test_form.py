@@ -95,6 +95,18 @@ class Test(unittest.TestCase):
         )
         self.assertListEqual(self.form.__errors__['age'].suggestions, [99])
 
+    def test_too_little(self):
+        """Testing an error with input too little"""
+        self.form.__raw__ = {
+            'name': 'Galahad', 'nickname': 'the Pure', 'age': '3'
+        }
+        self.assertFalse(self.form.__valid__)
+        self.assertEqual(
+            self.form.__errors__['age'].message,
+            "Value can't be lower than 7."
+        )
+        self.assertListEqual(self.form.__errors__['age'].suggestions, [7])
+
     def test_impure(self):
         """Testing the formwise validator"""
         self.form.__raw__ = {
