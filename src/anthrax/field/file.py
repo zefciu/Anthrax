@@ -7,6 +7,8 @@ from anthrax.field.base import Field
 from anthrax.widget import FileUpload, TextInput
 from anthrax.exc import ValidationError
 
+BINARY_MIMETYPES = {'image'}
+
 class AnthraxFileWrapper(object):
     """A common interface for differently stored files."""
     def __init__(self, arg, field):
@@ -21,8 +23,9 @@ class AnthraxFileWrapper(object):
                 raise ValidationError("Absolute paths aren't allowed")
             self.filename = arg
             full_path = os.path.join(field.directory, arg)
-            self.file = open(full_path, 'r')
             self.mimetype, encoding = mimetypes.guess_type(arg)
+            binary = self.mimetype.split('/')[0] in BINARY_MIMETYPES
+            self.file = open(full_path, 'rb' if binary else 'r')
         else:
             raise TypeError("Can't instantiate wrapper with {}!".format(
                 type(arg)))
@@ -52,13 +55,14 @@ class FileField(Field):
     def from_python(self, value):
         return None
 
-    def validate_python(self, value):
+    def _declarative_raw_validation(self, value):
+        pass
+
+    def _declarative_python_validation(self, value):
+        super(FileField, self)._declarative_python_validation(value)
         maintype, subtype = value.mimetype.split('/')
         possible_mimetypes = {
             value.mimetype, maintype + '/*', '*/' + subtype, '*/*'
         }
         if not possible_mimetypes & self.accept_mime:
             raise ValidationError(_('Invalid mime'))
-
-    def _declarative_raw_validation(self, value):
-        pass
