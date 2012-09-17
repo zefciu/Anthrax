@@ -194,6 +194,12 @@ class Container(Mapping, metaclass=ContainerMeta):
         self.__subcontainers__ = subcontainers
         self.__reset__()
 
+    def __bool__(self):
+        for subcontainer in self.__subcontainers__:
+            if subcontainer:
+                return True
+        return bool(self._values)
+
     def _load_validators(self):
         self._validators = []
         for validator in self.__validators__:
