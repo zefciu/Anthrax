@@ -16,6 +16,7 @@ class AnthraxFileWrapper(object):
             self.file = arg.file
             self.mimetype = arg.type
             self.field_storage = arg
+            self.filename = arg.filename
         elif isinstance(arg, str):
             if field.directory is None:
                 raise ValidationError("This field doesn't support filenames")
@@ -41,6 +42,7 @@ class FileField(Field):
     accept_mime = {'*/*'}
     widgets = [FileUpload, TextInput]
     directory = None
+    is_upload = True
 
     def __init__(self, *args, **kwargs):
         super(FileField, self).__init__(*args, **kwargs)

@@ -22,6 +22,8 @@ class Form(Container):
         valid = True
         self.raw_values = dict_
         for k, v in dict_.items():
+            if k.endswith('s[]'): # e.g. dojo does this
+                k = k[:-3]
             field = self.__fields__[k]    
             field_parent = field.parent
             key = k.rsplit('-', 1)[-1]
@@ -45,6 +47,8 @@ class Form(Container):
         else:
             return
         self._negotiate_widgets()
+
+                
 
     def render(self):
         self._load_frontend()

@@ -83,6 +83,7 @@ widgets:
     max_len_message = _("Value can't be longer than {max_len}")
     mode = None
     label = _('')
+    is_upload = False
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():

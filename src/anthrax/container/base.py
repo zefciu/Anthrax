@@ -295,3 +295,11 @@ class Container(Mapping, metaclass=ContainerMeta):
         for subcontainer in self.__subcontainers__:
             subcontainer._run_validators()
         return valid
+
+    def has_uploads(self):
+        for field in self._fields.values():
+            if field.is_upload:
+                return True
+            elif isinstance(field, Container) and field.has_uploads:
+                return True
+        return False
