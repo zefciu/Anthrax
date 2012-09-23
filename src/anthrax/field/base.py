@@ -35,7 +35,13 @@ class BoundField():
         else:
             return self._python2raw(self.value)
 
-class Field(object, metaclass=abc.ABCMeta):
+class FieldMeta(abc.ABCMeta):
+    def __instancecheck__(cls, instance):
+        if isinstance(instance, BoundField):
+            instance = instance._field
+        return super(FieldMeta, cls).__instancecheck__(instance)
+
+class Field(object, metaclass=FieldMeta):
     """Abstract Field class. Fields encapsulate validation and
 encoding/decoding logic. Non-abstract children of Field class should
 override at least to_python() and from_python() methods. Constructor arguments:

@@ -7,6 +7,7 @@ from collections import Sequence, Mapping, OrderedDict
 from decorator import decorator
 
 from anthrax.field.base import Field, BoundField
+from anthrax.field.action import Action
 from anthrax.frontend import Frontend
 from anthrax.exc import FormValidationError
 from anthrax.reflector import TOP, BOTTOM, BEFORE, AFTER
@@ -277,7 +278,8 @@ class Container(Mapping, metaclass=ContainerMeta):
 
     @traverse()
     def __getitem__(self, key):
-        return self._values[key]
+        if not isinstance(self.__fields__[key], Action):
+            return self._values[key]
 
     @traverse()
     def __setitem__(self, key, value):
