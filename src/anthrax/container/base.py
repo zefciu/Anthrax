@@ -1,5 +1,7 @@
 import abc
 import weakref
+import random
+from string import ascii_lowercase
 from collections import Sequence, Mapping, OrderedDict
 
 from decorator import decorator
@@ -193,6 +195,7 @@ class Container(Mapping, metaclass=ContainerMeta):
         self.__errors__ = ErrorDict(self)
         self.__subcontainers__ = subcontainers
         self.__reset__()
+        self.id = ''.join((random.choice(ascii_lowercase) for i in range(16)))
 
     def __bool__(self):
         for subcontainer in self.__subcontainers__:
