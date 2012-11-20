@@ -2,7 +2,7 @@ import datetime as dt
 
 from anthrax.exc import ValidationError
 from anthrax.field.ordered import OrderedField
-from anthrax.widget.datetime import DatePicker
+from anthrax.widget.date_time import DatePicker
 from anthrax.widget.simple import TextInput
 from gettext import gettext as _
 
