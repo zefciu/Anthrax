@@ -287,6 +287,16 @@ class Container(Mapping, metaclass=ContainerMeta):
         self._raw_values[key] = field._python2raw(value) # First as it can fail
         self._values[key] = value
 
+    @traverse()
+    def setdefault(self, key, value):
+        """Like setdefault() of a dict."""
+        if self._values.get(key):
+            return self._values[key]
+        field = self.__fields__[key]
+        self._raw_values[key] = field._python2raw(value) # First as it can fail
+        self._values[key] = value
+        return value
+
     def _run_validators(self):
         valid = True
         self._load_validators()
