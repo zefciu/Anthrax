@@ -243,9 +243,9 @@ class Container(Mapping, metaclass=ContainerMeta):
                 w = self._frontend.negotiate_widget(field)
                 field.widget = w
                 w.field = weakref.proxy(field)
-            # if isinstance(field, Container):
-            #     field._frontend = self._frontend
-            #     field._negotiate_widgets()
+            if isinstance(field, Container):
+                field._frontend = self._frontend
+                field._negotiate_widgets()
 
     @property
     def mode(self):
@@ -313,8 +313,8 @@ class Container(Mapping, metaclass=ContainerMeta):
 
     def has_uploads(self):
         for field in self._fields.values():
-            if field.is_upload:
-                return True
-            elif isinstance(field, Container) and field.has_uploads:
+            if isinstance(field, Container):
+                return field.has_uploads()
+            elif field.is_upload:
                 return True
         return False
