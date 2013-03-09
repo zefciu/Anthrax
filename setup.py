@@ -1,5 +1,5 @@
 # vim set fileencoding=utf-8
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('README.rst') as f:
     long_description = f.read()
@@ -9,10 +9,10 @@ with open('entry_points.ini') as f:
 
 setup(
     name = 'Anthrax',
-    version = '0.0.1',
+    version = '0.0.3',
     author = 'Szymon Pyżalski',
     author_email = 'zefciu <szymon@pythonista.net>',
-    description = 'Form geneation lib to end all form generation lib',
+    description = 'Form generation lib to end all form generation lib',
     url = 'http://github.com/zefciu/Anthrax',
     keywords = 'form web ',
     long_description = long_description,
@@ -22,10 +22,7 @@ setup(
     test_suite = 'nose.collector',
     package_dir = {'': 'src'},
     namespace_packages = ['anthrax'],
-    packages = [
-        'anthrax', 'anthrax.container', 'anthrax.field', 'anthrax.widget',
-    ],
-    use_2to3 = True,
+    packages = find_packages('src'),
     classifiers = [
         'Development Status :: 1 - Planning',
         'Intended Audience :: Developers',
