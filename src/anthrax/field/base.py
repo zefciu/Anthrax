@@ -20,6 +20,14 @@ class BoundField():
     def render(self, **kwargs):
         return self.widget.render(**kwargs)
 
+    @property
+    def form(self):
+        from anthrax.container.form import Form
+        node = self
+        while not isinstance(node, Form):
+            node = node.parent
+        return node
+
     def __str__(self):
         return '<BoundField: {0}>'.format(self._field)
 
@@ -34,6 +42,12 @@ class BoundField():
             return ''
         else:
             return self._python2raw(self.value)
+
+    def _raw2python(self, rvalue):
+        return self._field._raw2python(rvalue, self.form)
+
+    def _python2raw(self, pvalue):
+        return self._field._python2raw(pvalue, self.form)
 
 class FieldMeta(abc.ABCMeta):
     def __instancecheck__(cls, instance):
@@ -111,30 +125,31 @@ widgets:
     widgets = abc.abstractproperty()
     
     @abc.abstractmethod
-    def to_python(self, value):
+    def to_python(self, value, form):
         """Transform the raw, string value into a python object possibly
         raising ValidationError. This method is meant to be overridden by
         child classes"""
         return value
 
     @abc.abstractmethod
-    def from_python(self, value):
+    def from_python(self, value, form):
         """Transform a python object into renderable string. This method is
         meant to be overridden by child classes."""
         return str(value)
 
-    def validate_raw(self, value):
+    def validate_raw(self, value, form):
         """Validate raw value. Don't return anything. Possibly raise
         ValidationError."""
         pass
 
 
-    def validate_python(self, value):
+    def validate_python(self, value, form):
         """Validate python object. Don't return anything. Possibly raise
         ValidationError."""
         pass
 
-    def _declarative_raw_validation(self, value):
+
+    def _declarative_raw_validation(self, value, form):
         """This method is called as a part of validation process on the raw
         value. You should override it if you add more declarative validation
         parameters (like regexp or min_len)."""
@@ -153,33 +168,33 @@ widgets:
                 message=self.max_len_message.format(max_len=self.max_len)
             )
 
-    def _declarative_python_validation(self, value):
+    def _declarative_python_validation(self, value, form):
         """This method is called as a part of validation process on the python
         object. You should override it if you add more declarative validation
         parameters."""
         pass 
 
-    def _raw2python(self, rvalue):
+    def _raw2python(self, rvalue, form=None):
         """This method shouldn't normally be overridden. It is called by Form
         object to process the raw value."""
-        self._declarative_raw_validation(rvalue)
-        self.validate_raw(rvalue)
-        pvalue = self.to_python(rvalue)
-        self._declarative_python_validation(pvalue)
-        self.validate_python(pvalue)
+        self._declarative_raw_validation(rvalue, form)
+        self.validate_raw(rvalue, form)
+        pvalue = self.to_python(rvalue, form)
+        self._declarative_python_validation(pvalue, form)
+        self.validate_python(pvalue, form)
         return pvalue
 
-    def _python2raw(self, pvalue):
+    def _python2raw(self, pvalue, form=None):
         """This method shouldn't normally be overridden. It is called by Form
         object to process the python object."""
         try:
-            self.validate_python(pvalue)
+            self.validate_python(pvalue, form)
         except ValidationError as err:
             raise ValueError(
                 'This value is invalid. Validator said: {0}'.format(
                     err.message
                 )
             )
-        return self.from_python(pvalue)
+        return self.from_python(pvalue, form)
 
 Field.register(BoundField)

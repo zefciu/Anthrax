@@ -9,11 +9,11 @@ class TextField(Field):
 
     widgets = [w.TextInput, w.LongTextInput]
 
-    def to_python(self, value):
-        return super(TextField, self).to_python(value)
+    def to_python(self, value, form):
+        return super(TextField, self).to_python(value, form)
 
-    def from_python(self, value):
-        return super(TextField, self).from_python(value)
+    def from_python(self, value, form):
+        return super(TextField, self).from_python(value, form)
 
 class EmailField(TextField):
     """Like TextField, but checks input to be correct email."""

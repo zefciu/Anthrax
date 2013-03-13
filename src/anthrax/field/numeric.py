@@ -9,8 +9,8 @@ class IntegerField(OrderedField):
     regexp_message = _('Valid integer required')
     widgets = [w.Spinner, w.TextInput]
 
-    def to_python(self, value):
+    def to_python(self, value, form):
         return int(value)
 
-    def from_python(self, value):
+    def from_python(self, value, form):
         return str(value)

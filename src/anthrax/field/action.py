@@ -21,9 +21,9 @@ class HttpActionMixin():
     # url = ''
     # method = 'POST'
     widgets = [Button]
-    def from_python(self, val):
+    def from_python(self, val, form):
         return None
-    def to_python(self, val):
+    def to_python(self, val, form):
         return ''
 
 class HttpSubmit(HttpActionMixin, AcceptAction):

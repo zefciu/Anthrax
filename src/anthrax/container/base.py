@@ -40,6 +40,7 @@ def add_child(parent, name, item, mode):
                 if key == rel:
                     parent[name] = item
                     parent.move_to_end(name, False)
+        item.parent = weakref.proxy(parent)
 
 def traverse(attrib=None):
     def wrap(fun):
@@ -189,6 +190,7 @@ class Container(Mapping, metaclass=ContainerMeta):
                 field = BoundField(field, self)
             if isinstance(field, ContainerMeta):
                 field = field(mode)
+                field.parent = weakref.proxy(self)
                 subcontainers.append(field)
             fields[fname] = field
         self._fields = fields

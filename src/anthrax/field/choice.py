@@ -29,19 +29,19 @@ class ChoiceField(Field):
         super(ChoiceField, self).__init__(*args, **kwargs)
         self._normalize_choices()
 
-    def validate_raw(self, value):
+    def validate_raw(self, value, form):
         if value not in self.get_system_choices():
             raise ValidationError(_('Invalid option'))
-        super(ChoiceField, self).validate_raw(value)
+        super(ChoiceField, self).validate_raw(value, form)
 
     def _normalize_choices(self):
         self.choices = [Choice._make(choice) for choice in self.choices]
 
-    def to_python(self, value):
-        return super(ChoiceField, self).to_python(value)
+    def to_python(self, value, form):
+        return super(ChoiceField, self).to_python(value, form)
 
-    def from_python(self, value):
-        return super(ChoiceField, self).from_python(value)
+    def from_python(self, value, form):
+        return super(ChoiceField, self).from_python(value, form)
 
     def get_system_choices(self):
         return (choice.system for choice in self.choices)

@@ -3,7 +3,6 @@ import weakref
 
 from collections import Mapping, OrderedDict
 from anthrax.exc import ValidationError, FormValidationError
-from anthrax.field.base import Field
 from anthrax.util import load_entry_point
 from anthrax.frontend import Frontend
 from anthrax.container.base import Container
