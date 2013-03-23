@@ -1,6 +1,6 @@
 import unittest
 
-from anthrax.field import TextField, IntegerField
+from anthrax.field import MD, TextField, IntegerField
 from anthrax.container import Container, Form
 from util import dummy_frontend
 
@@ -15,7 +15,7 @@ class Test(unittest.TestCase):
             __frontend__ = dummy_frontend
             class personals(Container):
                 name = TextField(
-                    regexp=r'^[A-Z][a-z]+$',
+                    regexp=MD({KNIGHT: r'^[A-Z][a-z]+$'}),
                     regexp_message='Write your name with a capital',
                     max_len=20, max_len_message='You must be kidding!',
                 )
@@ -38,3 +38,20 @@ class Test(unittest.TestCase):
         """Testing a form a mode enabling field"""
         form = self.TestForm(KNIGHT)
         self.assertTrue('personals-nickname' in form.__fields__)
+
+    def test_mode_enabled_validation(self):
+        """Test a situation when the mode enables validation"""
+        form = self.TestForm(KNIGHT)
+        form.__raw__ = {
+            'personals-name': 'galahad', 'personals-nickname': 'the Pure',
+            'age': '25',
+        }
+        self.assertFalse(form.__valid__)
+
+    def test_mode_disabled_validation(self):
+        """Test a situation when the mode enables validation"""
+        form = self.TestForm(PEASANT)
+        form.__raw__ = {
+            'personals-name': 'patsy', 'age': '40',
+        }
+        self.assertTrue(form.__valid__)

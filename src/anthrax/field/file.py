@@ -51,17 +51,17 @@ class FileField(Field):
         if not isinstance(self.accept_mime, set):
             self.accept_mime = set(self.accept_mime)
 
-    def to_python(self, value, form):
+    def to_python(self, value, bf):
         return AnthraxFileWrapper(value, self)
 
-    def from_python(self, value, form):
+    def from_python(self, value, bf):
         return None
 
-    def _declarative_raw_validation(self, value, form):
+    def _declarative_raw_validation(self, value, bf):
         pass
 
-    def _declarative_python_validation(self, value, form):
-        super(FileField, self)._declarative_python_validation(value, form)
+    def _declarative_python_validation(self, value, bf):
+        super(FileField, self)._declarative_python_validation(value, bf)
         maintype, subtype = value.mimetype.split('/')
         possible_mimetypes = {
             value.mimetype, maintype + '/*', '*/' + subtype, '*/*'

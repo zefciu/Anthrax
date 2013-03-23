@@ -7,7 +7,7 @@ from anthrax.exc import ValidationError
 class EvenInteger(IntegerField):
     """This field only accepts even integers"""
 
-    def validate_python(self, value, form):
+    def validate_python(self, value, bf):
         if value % 2:
             raise ValidationError('You must provide even number')
 

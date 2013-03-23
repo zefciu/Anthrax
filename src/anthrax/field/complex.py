@@ -1,5 +1,5 @@
 """Definitions of fields that combine multiple values."""
-from anthrax.field.base import Field
+from anthrax.field.base import Field, BoundField
 from anthrax.widget import LongTextInput
 
 class ListField(Field):
@@ -26,7 +26,12 @@ class ListField(Field):
 
     widgets = [LongTextInput]
 
-    def to_python(self, value, form):
+    def bind(self, container):
+        bf = super(ListField, self).bind(container)
+        bf.subfield = self.subfield.bind(container)
+        return bf
+
+    def to_python(self, value, bf):
         value = [value]
         for separator in self.separators:
             value = sum([item.split(separator) for item in value], [])
@@ -34,8 +39,8 @@ class ListField(Field):
             value = [subvalue.strip() for subvalue in value]
         if self.drop_blanks:
             value = [subvalue for subvalue in value if subvalue]
-        return [self.subfield._raw2python(subvalue) for subvalue in value]
+        return [bf.subfield._raw2python(subvalue) for subvalue in value]
     
-    def from_python(self, value, form):
+    def from_python(self, value, bf):
         value = [self.subfield._python2raw(subvalue) for subvalue in value]
         return self.default_separator.join(value)

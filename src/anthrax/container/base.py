@@ -6,7 +6,7 @@ from collections import Sequence, Mapping, OrderedDict
 
 from decorator import decorator
 
-from anthrax.field.base import Field, BoundField
+from anthrax.field.base import Field
 from anthrax.field.action import Action
 from anthrax.frontend import Frontend
 from anthrax.exc import FormValidationError
@@ -187,7 +187,7 @@ class Container(Mapping, metaclass=ContainerMeta):
                     mode != field.mode
                 ):
                     continue
-                field = BoundField(field, self)
+                field = field.bind(self)
             if isinstance(field, ContainerMeta):
                 field = field(mode)
                 field.parent = weakref.proxy(self)

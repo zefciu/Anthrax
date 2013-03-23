@@ -10,7 +10,7 @@ class DateField(OrderedField):
     date_format = '%d-%m-%Y'
     widgets = [DatePicker, TextInput]
 
-    def to_python(self, value, form):
+    def to_python(self, value, bf):
         try:
             return dt.datetime.strptime(value, self.date_format).date()
         except ValueError:
@@ -18,7 +18,7 @@ class DateField(OrderedField):
                 message = _('Misformed date.')
             )
 
-    def from_python(self, value, form):
+    def from_python(self, value, bf):
         if value:
             return value.strftime(self.date_format)
         else:

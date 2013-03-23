@@ -4,17 +4,26 @@ import types
 import random
 from string import ascii_lowercase
 from gettext import gettext as _
+from types import MethodType
 
 from anthrax.exc import ValidationError
 
+class MD(dict):
+    """Mode dependent property."""
+    pass
+
 
 class BoundField():
+    _regexp_compiled = None
+
     def __init__(self, field, parent):
         self._field = field
         self.parent = parent
 
     def __getattr__(self, key):
         value = getattr(self._field, key)
+        if isinstance(value, MD):
+            value = value.get(self.form.mode)
         return value
 
     def render(self, **kwargs):
@@ -43,11 +52,17 @@ class BoundField():
         else:
             return self._python2raw(self.value)
 
+    @property
+    def regexp_compiled(self):
+        if self._regexp_compiled is None and self.regexp is not None:
+            self._regexp_compiled = re.compile(self.regexp)
+        return self._regexp_compiled
+
     def _raw2python(self, rvalue):
-        return self._field._raw2python(rvalue, self.form)
+        return type(self._field)._raw2python(self, rvalue, self)
 
     def _python2raw(self, pvalue):
-        return self._field._python2raw(pvalue, self.form)
+        return type(self._field)._python2raw(self, pvalue, self)
 
 class FieldMeta(abc.ABCMeta):
     def __instancecheck__(cls, instance):
@@ -96,7 +111,6 @@ widgets:
 
     regexp = None
     regexp_message = _('Value should match regexp {regexp}')
-    _regexp_compiled = None
     min_len = None
     min_len_message = _("Value can't be shorter than {min_len}")
     max_len = None
@@ -116,46 +130,41 @@ widgets:
     # def __get__(self, inst, cls):
     #     return BoundField(inst)
 
-    @property
-    def regexp_compiled(self):
-        if self._regexp_compiled is None and self.regexp is not None:
-            self._regexp_compiled = re.compile(self.regexp)
-        return self._regexp_compiled
         
     widgets = abc.abstractproperty()
     
     @abc.abstractmethod
-    def to_python(self, value, form):
+    def to_python(self, value, bf):
         """Transform the raw, string value into a python object possibly
         raising ValidationError. This method is meant to be overridden by
         child classes"""
         return value
 
     @abc.abstractmethod
-    def from_python(self, value, form):
+    def from_python(self, value, bf):
         """Transform a python object into renderable string. This method is
         meant to be overridden by child classes."""
         return str(value)
 
-    def validate_raw(self, value, form):
+    def validate_raw(self, value, bf):
         """Validate raw value. Don't return anything. Possibly raise
         ValidationError."""
         pass
 
 
-    def validate_python(self, value, form):
+    def validate_python(self, value, bf):
         """Validate python object. Don't return anything. Possibly raise
         ValidationError."""
         pass
 
 
-    def _declarative_raw_validation(self, value, form):
+    def _declarative_raw_validation(self, value, bf):
         """This method is called as a part of validation process on the raw
         value. You should override it if you add more declarative validation
         parameters (like regexp or min_len)."""
         len_ = len(value)
-        if self.regexp is not None:
-            if not self.regexp_compiled.match(value):
+        if bf.regexp is not None:
+            if not bf.regexp_compiled.match(value):
                 raise ValidationError(
                     message = self.regexp_message.format(regexp=self.regexp)
                 )
@@ -168,33 +177,37 @@ widgets:
                 message=self.max_len_message.format(max_len=self.max_len)
             )
 
-    def _declarative_python_validation(self, value, form):
+    def _declarative_python_validation(self, value, bf):
         """This method is called as a part of validation process on the python
         object. You should override it if you add more declarative validation
         parameters."""
         pass 
 
-    def _raw2python(self, rvalue, form=None):
+    def _raw2python(self, rvalue, bf=None):
         """This method shouldn't normally be overridden. It is called by Form
         object to process the raw value."""
-        self._declarative_raw_validation(rvalue, form)
-        self.validate_raw(rvalue, form)
-        pvalue = self.to_python(rvalue, form)
-        self._declarative_python_validation(pvalue, form)
-        self.validate_python(pvalue, form)
+        self._declarative_raw_validation(rvalue, bf)
+        self.validate_raw(rvalue, bf)
+        pvalue = self.to_python(rvalue, bf)
+        self._declarative_python_validation(pvalue, bf)
+        self.validate_python(pvalue, bf)
         return pvalue
 
-    def _python2raw(self, pvalue, form=None):
+    def _python2raw(self, pvalue, bf=None):
         """This method shouldn't normally be overridden. It is called by Form
         object to process the python object."""
         try:
-            self.validate_python(pvalue, form)
+            self.validate_python(pvalue, bf)
         except ValidationError as err:
             raise ValueError(
                 'This value is invalid. Validator said: {0}'.format(
                     err.message
                 )
             )
-        return self.from_python(pvalue, form)
+        return self.from_python(pvalue, bf)
+
+    def bind(self, container):
+        """Returns a BoundField for this field."""
+        return BoundField(self, container)
 
 Field.register(BoundField)

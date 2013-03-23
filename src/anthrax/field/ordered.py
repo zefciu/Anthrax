@@ -26,7 +26,7 @@ max_message:
     min_message = _("Value can't be lower than {min}.")
     max_message = _("Value can't be higher than {max}.")
 
-    def _declarative_python_validation(self, value, form):
+    def _declarative_python_validation(self, value, bf):
         if self.min is not None and value < self.min:
             raise ValidationError(self.min_message.format(
                 min=self._python2raw(self.min)
@@ -35,4 +35,4 @@ max_message:
             raise ValidationError(self.max_message.format(
                 max=self._python2raw(self.max)
             ), suggestions=[self.max])
-        super(OrderedField, self)._declarative_python_validation(value, form)
+        super(OrderedField, self)._declarative_python_validation(value, bf)
