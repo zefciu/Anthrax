@@ -46,11 +46,7 @@ class BoundField():
 
     @property
     def raw_value(self):
-        v = self.value
-        if self.value is None:
-            return ''
-        else:
-            return self._python2raw(self.value)
+        return self.parent.__raw__.get(self.name, '')
 
     @property
     def regexp_compiled(self):

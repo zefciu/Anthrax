@@ -135,9 +135,12 @@ class RawDict(Mapping):
     def __init__(self, owner):
         self.owner = owner
         self._fields = owner._fields
+        self.raw_values = self.owner.raw_values
 
     @traverse('__raw__')
     def __getitem__(self, key):
+        if self.raw_values is not None and key in self.raw_values:
+            return self.raw_values[key]
         field = self.owner._fields[key]
         value = self.owner.get(key, None)
         if isinstance(field, Container):
@@ -172,11 +175,13 @@ class FieldsDict(Mapping):
         return len(self.owner)
 
 class Container(Mapping, metaclass=ContainerMeta):
+    """A base class for various containers - forms fieldsets, etc."""
     __validators__ = []
 
     def __init__(self, mode=None):
         self._load_validators()
         self._mode = mode
+        self.raw_values = None
         fields = OrderedDict()
         subcontainers = []
         for fname, field in type(self).__fields__.items():
@@ -251,11 +256,12 @@ class Container(Mapping, metaclass=ContainerMeta):
 
     @property
     def mode(self):
+        """The mode of this container."""
         return self._mode
 
     @property
     def __valid__(self):
-        """Returns true if form is valid"""
+        """True if form is valid"""
         return (
             not bool(self._errors) and 
             all (sub.__valid__ for sub in self.__subcontainers__)
@@ -263,6 +269,8 @@ class Container(Mapping, metaclass=ContainerMeta):
 
     @property
     def __raw__(self):
+        """Raw value of the container. This property is read-only except on the
+        form, where it can be written."""
         return RawDict(self)
 
     def __reset__(self):
@@ -314,6 +322,8 @@ class Container(Mapping, metaclass=ContainerMeta):
         return valid
 
     def has_uploads(self):
+        """Returns ``True`` if this container has file upload fields. It works
+        recursively. Useful for rendering AJAX forms."""
         for field in self._fields.values():
             if isinstance(field, Container):
                 return field.has_uploads()

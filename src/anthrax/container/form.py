@@ -8,6 +8,8 @@ from anthrax.frontend import Frontend
 from anthrax.container.base import Container
 
 class Form(Container):
+    """A form is a top-level container. It is on the form where the raw 
+    data should be assigned and which should be rendered."""
 
     def __init__(self, mode=None, **kwargs):
         self._frontend_name_cache = None
@@ -47,8 +49,7 @@ class Form(Container):
             return
         self._negotiate_widgets()
 
-                
-
     def render(self):
+        """Render the form in configured frontend."""
         self._load_frontend()
         return self._frontend.form_view(self)
