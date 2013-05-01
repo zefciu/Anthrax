@@ -55,6 +55,8 @@ class MirrorField(TextField):
     def bind(self, container):
         if self.mirrored is None:
             raise TypeError('No field set to mirror!')
+        if isinstance(self.mirrored, str):
+            self.mirrored = container.__fields__[self.mirrored]
         bf = super(MirrorField, self).bind(container)
         bf.bound_mirrored = self.mirrored.bind(container)
         return bf
