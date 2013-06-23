@@ -23,8 +23,8 @@ max_message:
 
     min = None
     max = None
-    min_message = _("Value can't be lower than {min}.")
-    max_message = _("Value can't be higher than {max}.")
+    min_message = _("Value can't be lower than {min}")
+    max_message = _("Value can't be higher than {max}")
 
     def _declarative_python_validation(self, value, bf):
         if self.min is not None and value < self.min:

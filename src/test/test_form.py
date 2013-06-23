@@ -91,7 +91,7 @@ class Test(unittest.TestCase):
         self.assertFalse(self.form.__valid__)
         self.assertEqual(
             self.form.__errors__['age'].message,
-            "Value can't be higher than 99."
+            "Value can't be higher than 99"
         )
         self.assertListEqual(self.form.__errors__['age'].suggestions, [99])
 
@@ -103,7 +103,7 @@ class Test(unittest.TestCase):
         self.assertFalse(self.form.__valid__)
         self.assertEqual(
             self.form.__errors__['age'].message,
-            "Value can't be lower than 7."
+            "Value can't be lower than 7"
         )
         self.assertListEqual(self.form.__errors__['age'].suggestions, [7])
 

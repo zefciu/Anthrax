@@ -15,8 +15,6 @@ from anthrax.util import load_entry_point
 
 def add_child(parent, name, item, mode):
     attr = 'place' if mode == 'field' else '__place__'
-    if name in parent:
-        del parent[name]
     place = getattr(item, attr, BOTTOM)
     if place == BOTTOM:
         parent[name] = item
@@ -96,6 +94,8 @@ class ContainerMeta(abc.ABCMeta):
                 del fields[itemname]
             if isinstance(item, Field):
                 item.name = itemname
+                if itemname in fields:
+                    item.place = (AFTER, itemname)
                 add_child(fields, itemname, item, 'field')
             if isinstance(item, ContainerMeta):
                 item = ContainerMeta(
@@ -124,6 +124,11 @@ class ErrorDict(Mapping):
     def __getitem__(self, key):
         return self.owner._errors.get(key)
 
+    def __repr__(self):
+        return repr(dict(self))
+
+    __str__ = __repr__
+    
     def __iter__(self):
         return iter(self.owner._errors)
 
