@@ -52,7 +52,10 @@ class FileField(Field):
             self.accept_mime = set(self.accept_mime)
 
     def to_python(self, value, bf):
-        return AnthraxFileWrapper(value, self)
+        if value != b'':
+            return AnthraxFileWrapper(value, self)
+        else:
+            raise ValidationError(_('File missing'))
 
     def from_python(self, value, bf):
         return None

@@ -9,7 +9,7 @@ with open('entry_points.ini') as f:
 
 setup(
     name = 'Anthrax',
-    version = '0.0.7',
+    version = '0.0.8',
     author = 'Szymon Pyżalski',
     author_email = 'zefciu <szymon@pythonista.net>',
     description = 'Form generation lib to end all form generation lib',
