@@ -9,7 +9,7 @@ with open('entry_points.ini') as f:
 
 setup(
     name = 'Anthrax',
-    version = '0.0.8',
+    version = '0.1.0',
     author = 'Szymon Pyżalski',
     author_email = 'zefciu <szymon@pythonista.net>',
     description = 'Form generation lib to end all form generation lib',
@@ -24,7 +24,7 @@ setup(
     namespace_packages = ['anthrax'],
     packages = find_packages('src'),
     classifiers = [
-        'Development Status :: 1 - Planning',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3',
