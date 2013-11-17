@@ -11,3 +11,9 @@ class FormValidationError(ValidationError):
     def __init__(self, fields, message):
         self.fields = fields
         super(FormValidationError, self).__init__(message, None)
+
+
+class MissingData(BaseException):
+    """This exception should be raised by a field depending on another, that
+    cannot compute its value because of missing data from another field."""
+

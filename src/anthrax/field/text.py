@@ -6,7 +6,8 @@ import abc
 from anthrax.field.base import Field
 from anthrax import widget as w
 from gettext import gettext as _
-from anthrax.exc import ValidationError
+from anthrax.exc import ValidationError, MissingData
+
 
 class TextField(Field):
     """Simple field that represents a string. Inherits
@@ -49,6 +50,8 @@ class MirrorField(TextField):
             else:
                 return value
         else:
+            if bf.bound_mirrored.value is None:
+                raise MissingData(bf.bound_mirrored.name)
             value = self.mirror_filter(bf.bound_mirrored)
         return value
 

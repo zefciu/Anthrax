@@ -2,10 +2,11 @@ import abc
 import weakref
 
 from collections import Mapping, OrderedDict
-from anthrax.exc import ValidationError, FormValidationError
+from anthrax.exc import ValidationError, FormValidationError, MissingData
 from anthrax.util import load_entry_point
 from anthrax.frontend import Frontend
 from anthrax.container.base import Container
+
 
 class Form(Container):
     """A form is a top-level container. It is on the form where the raw 
@@ -20,9 +21,9 @@ class Form(Container):
     def __raw__(self, dict_):
         """Accepts a dictionary of raw values. Returns True on success and
         False on errors"""
-        valid = True
         self.raw_values = dict_
-        for k, v in dict_.items():
+        state = {'valid': True, 'delayed': []}
+        def set_value(k, v):
             if k.endswith('s[]'): # e.g. dojo does this
                 k = k[:-3]
             field = self.__fields__[k]    
@@ -32,10 +33,21 @@ class Form(Container):
                 field_parent._values[key] = field._raw2python(v)
             except ValidationError as err:
                 field_parent._errors[key] = err
-                valid = False
-        if valid:
+                state['valid'] = False
+            except MissingData:
+                state['delayed'].append((k, v))
+        for k, v in dict_.items():
+            set_value(k, v)
+        while state['delayed']:
+            last_delayed = state['delayed']
+            state['delayed'] = []
+            for k, v in last_delayed:
+                set_value(k, v)
+            if set(state['delayed']) == set(last_delayed):
+                raise TypeError('Circular dependency between fields!')
+        if state['valid']:
             self._run_validators()
-        return valid
+        return state['valid']
 
     def _load_frontend(self):
         if isinstance(self.__frontend__, Frontend):

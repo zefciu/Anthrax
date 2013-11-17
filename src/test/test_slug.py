@@ -1,4 +1,5 @@
 import unittest
+from collections import OrderedDict
 
 from anthrax.container.form import Form
 from anthrax.field import TextField, SlugField, IntegerField
@@ -23,10 +24,15 @@ class Test(unittest.TestCase):
         
     def test_auto(self):
         """Test an automatic slugification."""
-        self.form.__raw__ = {
-            'name': 'Galahad', 'nickname': 'the  Pure', 'age': '25',
-            'slug': ''
-        }
+        # We deliberately use ordered dict with suboptimal order
+        # To test situtation where slug field has no value to mirror yet
+        raw = OrderedDict([
+            ('name', 'Galahad'),
+            ('slug', ''),
+            ('nickname', 'the Pure'),
+            ('age', '25'),
+        ])
+        self.form.__raw__ = raw
         self.assertEqual(self.form.__fields__['slug'].value, 'the-pure')
 
     def test_override(self):

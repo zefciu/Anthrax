@@ -13,6 +13,7 @@ from anthrax.exc import FormValidationError
 from anthrax.reflector import TOP, BOTTOM, BEFORE, AFTER
 from anthrax.util import load_entry_point
 
+
 def add_child(parent, name, item, mode):
     attr = 'place' if mode == 'field' else '__place__'
     place = getattr(item, attr, BOTTOM)
