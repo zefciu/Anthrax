@@ -35,6 +35,7 @@ class Test(unittest.TestCase):
             'age': '25',
         }
         self.assertTrue(self.form.__valid__)
+        self.assertIn('personals-name', self.form)
         self.assertEqual(self.form['personals-name'], 'Galahad')
         self.assertEqual(self.form['age'], 25)
         

@@ -2,7 +2,7 @@ import abc
 import weakref
 
 from collections import Mapping, OrderedDict
-from anthrax.exc import ValidationError, FormValidationError, MissingData
+from anthrax.exc import ValidationError, FormValidationError
 from anthrax.util import load_entry_point
 from anthrax.frontend import Frontend
 from anthrax.container.base import Container
@@ -21,30 +21,21 @@ class Form(Container):
     def __raw__(self, dict_):
         """Accepts a dictionary of raw values. Returns True on success and
         False on errors"""
-        self.raw_values = dict_
-        state = {'valid': True, 'delayed': []}
-        def set_value(k, v):
-            if k.endswith('s[]'): # e.g. dojo does this
-                k = k[:-3]
-            field = self.__fields__[k]    
+        self.raw_values = {}
+        state = {'valid': True}
+        def set_value(key, field):
+            value = dict_.get(key, '')
+            if key.endswith('s[]'): # e.g. dojo does this
+                key = key[:-3]
             field_parent = field.parent
-            key = k.rsplit('-', 1)[-1]
+            key_proper = key.rsplit('-', 1)[-1]
             try:
-                field_parent._values[key] = field._raw2python(v)
+                field_parent._values[key_proper] = field._raw2python(value)
             except ValidationError as err:
                 field_parent._errors[key] = err
                 state['valid'] = False
-            except MissingData:
-                state['delayed'].append((k, v))
-        for k, v in dict_.items():
-            set_value(k, v)
-        while state['delayed']:
-            last_delayed = state['delayed']
-            state['delayed'] = []
-            for k, v in last_delayed:
-                set_value(k, v)
-            if set(state['delayed']) == set(last_delayed):
-                raise TypeError('Circular dependency between fields!')
+        for key, field in self.__fields__.iter_fields():
+            set_value(key, field)
         if state['valid']:
             self._run_validators()
         return state['valid']

@@ -6,3 +6,4 @@ from anthrax.field.file import *
 from anthrax.field.action import *
 from anthrax.field.choice import *
 from anthrax.field.base import MD
+from anthrax.field.bool import *

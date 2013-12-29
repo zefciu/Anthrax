@@ -9,7 +9,7 @@ from decorator import decorator
 from anthrax.field.base import Field
 from anthrax.field.action import Action
 from anthrax.frontend import Frontend
-from anthrax.exc import FormValidationError
+from anthrax.exc import FormValidationError, ValidationError
 from anthrax.reflector import TOP, BOTTOM, BEFORE, AFTER
 from anthrax.util import load_entry_point
 
@@ -155,6 +155,14 @@ class RawDict(Mapping):
             return field._python2raw(value)
         return ''
 
+    @traverse('__raw__')
+    def __setitem__(self, key, value):
+        self.raw_values[key] = value
+        field = self.owner._fields[key]
+        try:
+            self.owner._values[key] = field._raw2python(value)
+        except ValidationError as err:
+            self.owner._errors[key] = err
 
     def __iter__(self):
         return iter(self.owner)
@@ -177,6 +185,14 @@ class FieldsDict(Mapping):
     def __iter__(self):
         return iter(self.owner)
 
+    def iter_fields(self, prefix=''):
+        """Iterates deeply over the elements that are subclasses of Field."""
+        for key, el in self._fields.items():
+            if isinstance(el, Field):
+                yield prefix + key, el
+            if isinstance(el, Container):
+                yield from el.__fields__.iter_fields(prefix + key + '-')
+
     def __len__(self):
         return len(self.owner)
 
@@ -187,7 +203,7 @@ class Container(Mapping, metaclass=ContainerMeta):
     def __init__(self, mode=None):
         self._load_validators()
         self._mode = mode
-        self.raw_values = None
+        self.raw_values = {}
         fields = OrderedDict()
         subcontainers = []
         for fname, field in type(self).__fields__.items():
@@ -296,6 +312,11 @@ class Container(Mapping, metaclass=ContainerMeta):
     def __getitem__(self, key):
         if not isinstance(self.__fields__[key], Action):
             return self._values[key]
+
+    @traverse()
+    def __contains__(self, key):
+        return key in self._values
+
 
     @traverse()
     def __setitem__(self, key, value):

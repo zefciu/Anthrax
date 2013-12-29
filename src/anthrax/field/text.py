@@ -50,7 +50,7 @@ class MirrorField(TextField):
             else:
                 return value
         else:
-            if bf.bound_mirrored.value is None:
+            if bf.bound_mirrored.raw_value is None:
                 raise MissingData(bf.bound_mirrored.name)
             value = self.mirror_filter(bf.bound_mirrored)
         return value

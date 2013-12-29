@@ -1,5 +1,4 @@
 import unittest
-import datetime
 
 from anthrax.container import Form
 from anthrax.field import ChoiceField

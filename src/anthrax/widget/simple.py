@@ -15,3 +15,6 @@ class LongTextInput(TextInput):
 
 class Hidden(Widget):
     """Value storage that is invisible to user"""
+
+class Checkbox(Widget):
+    """A checkbox."""
